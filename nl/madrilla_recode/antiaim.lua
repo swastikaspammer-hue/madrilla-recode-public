@@ -172,8 +172,6 @@ antiaim.OnSetupCommand = function(cmd)
     end
 
     if not menu.antiaim.enable:get() then
-        rage.antiaim:override_hidden_pitch(nil)
-        rage.antiaim:override_hidden_yaw_offset(nil)
         return
     end
 

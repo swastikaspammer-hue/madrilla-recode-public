@@ -440,8 +440,6 @@ antiaim.OnSetupCommand = function(cmd)
         end
     end
     if not menu.antiaim.enable:get() then
-        rage.antiaim:override_hidden_pitch(nil)
-        rage.antiaim:override_hidden_yaw_offset(nil)
         return
     end
     if menu.antiaim.manualLeft:get()    then cmd.view_angles.y = cmd.view_angles.y - 90; return end
