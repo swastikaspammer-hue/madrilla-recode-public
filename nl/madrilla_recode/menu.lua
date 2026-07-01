@@ -173,44 +173,97 @@ do
         "crouch moving", "air crouched", "air", "fakeducking", "defensive"
     }
 
+    local g_builder = ui.create("Anti-Aim", "Builder")
+
     for _, name in ipairs(state_names) do
-        local g = ui.create("Anti-Aim", "State: " .. name)
         local state = { name = name }
 
         if name ~= "global" then
-            state.overrideGlobal = g:switch("Override global")
+            state.overrideGlobal = g_builder:switch("[" .. name .. "] Override global")
         end
         if name ~= "defensive" then
-            state.allowDefensive = g:switch("Allow defensive")
-            state.forceDefensive = g:switch("Force defensive")
+            state.allowDefensive = g_builder:switch("[" .. name .. "] Allow defensive")
+            state.forceDefensive = g_builder:switch("[" .. name .. "] Force defensive")
         end
 
-        state.pitchOffset         = g:slider("Pitch offset", -89, 89, 0)
-        state.yawOffset           = g:slider("Yaw offset", -180, 180, 0)
-        state.yawMode             = g:combo("Yaw mode", "static", "jitter", "delayed jitter",
-                                             "random", "spin", "lfo", "switch", "3-way", "5-way")
-        state.yawJitterDelayMin   = g:slider("Yaw jitter delay min", 1, 10, 3)
-        state.yawJitterDelayMax   = g:slider("Yaw jitter delay max", 1, 10, 9)
-        state.yawLfoShape         = g:combo("Yaw LFO shape", "sine", "triangle", "pulse")
-        state.yawLfoSpeed         = g:slider("Yaw LFO speed", 1, 100, 50)
-        state.yawLfoVelocityScale = g:switch("Scale yaw LFO by velocity")
-        state.yawLfoRange         = g:slider("Yaw LFO range", 0, 180, 90)
-        state.yawSwitchDelay      = g:slider("Yaw switch delay (ticks)", 1, 100, 30)
-        state.bodyYawOffset           = g:slider("Body yaw offset", -180, 180, 60)
-        state.bodyYawMode             = g:combo("Body yaw mode", "static", "jitter",
-                                                  "delayed jitter", "random", "lfo")
-        state.bodyYawJitterDelayMin   = g:slider("Body yaw jitter delay min", 1, 10, 3)
-        state.bodyYawJitterDelayMax   = g:slider("Body yaw jitter delay max", 1, 10, 9)
-        state.bodyYawLfoShape         = g:combo("Body yaw LFO shape", "sine", "triangle", "pulse")
-        state.bodyYawLfoSpeed         = g:slider("Body yaw LFO speed", 1, 100, 50)
-        state.bodyYawLfoVelocityScale = g:switch("Scale body yaw LFO by velocity")
-        state.bodyYawLfoRange         = g:slider("Body yaw LFO range", 0, 180, 60)
-        state.staticPeek              = g:switch("Static peek on hit")
-        state.fakeBreaker             = g:switch("Extended desync")
-        state.extendFake              = g:switch("Extend fake")
+        state.pitchOffset         = g_builder:slider("[" .. name .. "] Pitch offset", -89, 89, 0)
+        state.yawOffset           = g_builder:slider("[" .. name .. "] Yaw offset", -180, 180, 0)
+        state.yawMode             = g_builder:combo("[" .. name .. "] Yaw mode", "static", "jitter", "delayed jitter", "random", "spin", "lfo", "switch", "3-way", "5-way")
+        state.yawJitterDelayMin   = g_builder:slider("[" .. name .. "] Yaw jitter delay min", 1, 10, 3)
+        state.yawJitterDelayMax   = g_builder:slider("[" .. name .. "] Yaw jitter delay max", 1, 10, 9)
+        state.yawLfoShape         = g_builder:combo("[" .. name .. "] Yaw LFO shape", "sine", "triangle", "pulse")
+        state.yawLfoSpeed         = g_builder:slider("[" .. name .. "] Yaw LFO speed", 1, 100, 50)
+        state.yawLfoVelocityScale = g_builder:switch("[" .. name .. "] Scale yaw LFO by velocity")
+        state.yawLfoRange         = g_builder:slider("[" .. name .. "] Yaw LFO range", 0, 180, 90)
+        state.yawSwitchDelay      = g_builder:slider("[" .. name .. "] Yaw switch delay (ticks)", 1, 100, 30)
+        state.bodyYawOffset           = g_builder:slider("[" .. name .. "] Body yaw offset", -180, 180, 60)
+        state.bodyYawMode             = g_builder:combo("[" .. name .. "] Body yaw mode", "static", "jitter", "delayed jitter", "random", "lfo")
+        state.bodyYawJitterDelayMin   = g_builder:slider("[" .. name .. "] Body yaw jitter delay min", 1, 10, 3)
+        state.bodyYawJitterDelayMax   = g_builder:slider("[" .. name .. "] Body yaw jitter delay max", 1, 10, 9)
+        state.bodyYawLfoShape         = g_builder:combo("[" .. name .. "] Body yaw LFO shape", "sine", "triangle", "pulse")
+        state.bodyYawLfoSpeed         = g_builder:slider("[" .. name .. "] Body yaw LFO speed", 1, 100, 50)
+        state.bodyYawLfoVelocityScale = g_builder:switch("[" .. name .. "] Scale body yaw LFO by velocity")
+        state.bodyYawLfoRange         = g_builder:slider("[" .. name .. "] Body yaw LFO range", 0, 180, 60)
+        state.staticPeek              = g_builder:switch("[" .. name .. "] Static peek on hit")
+        state.fakeBreaker             = g_builder:switch("[" .. name .. "] Extended desync")
+        state.extendFake              = g_builder:switch("[" .. name .. "] Extend fake")
 
         menu.antiaim.states[name] = state
     end
+
+    events.render:set(function()
+        local current_state = menu.antiaim.stateCombo:get()
+        local custom_aa_enabled = menu.antiaim.enable:get()
+        
+        for name, state in pairs(menu.antiaim.states) do
+            local is_active = (name == current_state) and custom_aa_enabled
+
+            if state.overrideGlobal then state.overrideGlobal:visibility(is_active) end
+            
+            local show_settings = is_active
+            if name ~= "global" and state.overrideGlobal then
+                show_settings = is_active and state.overrideGlobal:get()
+            end
+
+            if state.allowDefensive then state.allowDefensive:visibility(show_settings) end
+            if state.forceDefensive then state.forceDefensive:visibility(show_settings) end
+
+            state.pitchOffset:visibility(show_settings)
+            state.yawOffset:visibility(show_settings)
+            state.yawMode:visibility(show_settings)
+            
+            local y_mode = state.yawMode:get()
+            local show_y_jitter = show_settings and (y_mode == 2 or y_mode == 3)
+            local show_y_lfo    = show_settings and (y_mode == 6)
+            local show_y_switch = show_settings and (y_mode == 7)
+
+            state.yawJitterDelayMin:visibility(show_y_jitter)
+            state.yawJitterDelayMax:visibility(show_y_jitter)
+            state.yawLfoShape:visibility(show_y_lfo)
+            state.yawLfoSpeed:visibility(show_y_lfo)
+            state.yawLfoVelocityScale:visibility(show_y_lfo)
+            state.yawLfoRange:visibility(show_y_lfo)
+            state.yawSwitchDelay:visibility(show_y_switch)
+
+            state.bodyYawOffset:visibility(show_settings)
+            state.bodyYawMode:visibility(show_settings)
+
+            local by_mode = state.bodyYawMode:get()
+            local show_by_jitter = show_settings and (by_mode == 2 or by_mode == 3)
+            local show_by_lfo    = show_settings and (by_mode == 5)
+
+            state.bodyYawJitterDelayMin:visibility(show_by_jitter)
+            state.bodyYawJitterDelayMax:visibility(show_by_jitter)
+            state.bodyYawLfoShape:visibility(show_by_lfo)
+            state.bodyYawLfoSpeed:visibility(show_by_lfo)
+            state.bodyYawLfoVelocityScale:visibility(show_by_lfo)
+            state.bodyYawLfoRange:visibility(show_by_lfo)
+
+            state.staticPeek:visibility(show_settings)
+            state.fakeBreaker:visibility(show_settings)
+            state.extendFake:visibility(show_settings)
+        end
+    end)
 end
 
 do

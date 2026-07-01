@@ -73,13 +73,22 @@ local function lerp_color(ca, cb, t)
     return color(ci(ca.r, cb.r, t), ci(ca.g, cb.g, t), ci(ca.b, cb.b, t), ci(ca.a, cb.a, t))
 end
 
+local kf_cached_font_size = 0
+local kf_cached_font = nil
+
 events.render:set(function()
     if not globals.is_in_game then return end
 
     local screen_w, screen_h = render.screen_size()
     local size    = menu.hud.customKillfeed.size:get()
     local now     = globals.realtime
-    local font    = render.load_font("Verdana", size, "ab")
+    
+    if size ~= kf_cached_font_size or not kf_cached_font then
+        kf_cached_font = render.load_font("Verdana", size, "ab")
+        kf_cached_font_size = size
+    end
+    local font = kf_cached_font
+
 
     if menu.hud.customKillfeed.enable:get() then
         local adv         = menu.hud.customKillfeed.advanced:get()
