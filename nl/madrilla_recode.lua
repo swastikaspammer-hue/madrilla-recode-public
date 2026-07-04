@@ -10,6 +10,10 @@ local function check_for_updates()
         void* __stdcall URLDownloadToFileA(void* pCaller, const char* szURL, const char* szFileName, int dwReserved, int lpfnCB);
         bool DeleteUrlCacheEntryA(const char* lpszUrlName);
         int GetEnvironmentVariableA(const char* lpName, char* lpBuffer, int nSize);
+        void* __stdcall CreateFileA(const char* lpFileName, uint32_t dwDesiredAccess, uint32_t dwShareMode, void* lpSecurityAttributes, uint32_t dwCreationDisposition, uint32_t dwFlagsAndAttributes, void* hTemplateFile);
+        bool __stdcall ReadFile(void* hFile, void* lpBuffer, uint32_t nNumberOfBytesToRead, uint32_t* lpNumberOfBytesRead, void* lpOverlapped);
+        bool __stdcall CloseHandle(void* hObject);
+        uint32_t __stdcall GetFileSize(void* hFile, uint32_t* lpFileSizeHigh);
     ]]
     local urlmon = ffi.load("UrlMon")
     local wininet = ffi.load("WinInet")
@@ -22,26 +26,40 @@ local function check_for_updates()
     wininet.DeleteUrlCacheEntryA("https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt")
     urlmon.URLDownloadToFileA(nil, "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt", version_file, 0, 0)
     
-    local f = io.open(version_file, "r")
-    if f then
-        local remote_version = f:read("*a"):gsub("%s+", "")
-        f:close()
-        
-        if remote_version ~= M_VERSION and remote_version ~= "" then
-            local script_path = debug.getinfo(1, "S").source
-            if script_path:sub(1, 1) == "@" then
-                script_path = script_path:sub(2)
+    local hFile = kernel32.CreateFileA(version_file, 0x80000000, 1, nil, 3, 128, nil)
+    if hFile ~= ffi.cast("void*", -1) then
+        local size = kernel32.GetFileSize(hFile, nil)
+        if size > 0 then
+            local buf = ffi.new("char[?]", size + 1)
+            local bytesRead = ffi.new("uint32_t[1]")
+            if kernel32.ReadFile(hFile, buf, size, bytesRead, nil) then
+                local remote_version = ffi.string(buf, bytesRead[0]):gsub("%s+", "")
+                kernel32.CloseHandle(hFile)
+                
+                if remote_version ~= M_VERSION and remote_version ~= "" then
+                    local script_path = debug.getinfo(1, "S").source
+                    if script_path:sub(1, 1) == "@" then
+                        script_path = script_path:sub(2)
+                    end
+                    
+                    wininet.DeleteUrlCacheEntryA("https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua")
+                    urlmon.URLDownloadToFileA(nil, "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua", script_path, 0, 0)
+                    
+                    print("[Madrilla Recode] Updated to version " .. remote_version .. "! Reloading...")
+                    common.reload_script()
+                end
+            else
+                kernel32.CloseHandle(hFile)
             end
-            
-            wininet.DeleteUrlCacheEntryA("https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua")
-            urlmon.URLDownloadToFileA(nil, "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua", script_path, 0, 0)
-            
-            print("[Madrilla Recode] Updated to version " .. remote_version .. "! Reloading...")
-            common.reload_script()
+        else
+            kernel32.CloseHandle(hFile)
         end
     end
 end
-pcall(check_for_updates)
+local success, err = pcall(check_for_updates)
+if not success then
+    print("[Auto-Updater Error] " .. tostring(err))
+end
 -- [[ END AUTO UPDATER ]]
 local l_vector_0 = vector;
 local l_error_0 = error;
