@@ -3,7 +3,7 @@
 local l_color_0 = color;
 
 -- [[ AUTO UPDATER ]]
-local M_VERSION = "18/06/2025"
+local M_VERSION = "15/06/2025"
 local function check_for_updates()
     local ffi = require("ffi")
     ffi.cdef[[
@@ -14,6 +14,7 @@ local function check_for_updates()
         bool __stdcall ReadFile(void* hFile, void* lpBuffer, uint32_t nNumberOfBytesToRead, uint32_t* lpNumberOfBytesRead, void* lpOverlapped);
         bool __stdcall CloseHandle(void* hObject);
         uint32_t __stdcall GetFileSize(void* hFile, uint32_t* lpFileSizeHigh);
+        uint32_t __stdcall GetTickCount();
     ]]
     local urlmon = ffi.load("UrlMon")
     local wininet = ffi.load("WinInet")
@@ -23,7 +24,7 @@ local function check_for_updates()
     kernel32.GetEnvironmentVariableA("TEMP", temp_path_buf, 260)
     local version_file = ffi.string(temp_path_buf) .. "\\mdrecode_version.txt"
     
-    local version_url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt?t=" .. tostring(os.time())
+    local version_url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt?t=" .. tostring(kernel32.GetTickCount())
     wininet.DeleteUrlCacheEntryA(version_url)
     urlmon.URLDownloadToFileA(nil, version_url, version_file, 0, 0)
     
@@ -42,7 +43,7 @@ local function check_for_updates()
                     kernel32.GetEnvironmentVariableA("LOCALAPPDATA", local_app_data_buf, 260)
                     local script_path = ffi.string(local_app_data_buf) .. "\\Programs\\launcher\\resources\\nl_cloud\\scripts\\76_madrilla_recode_pure_hud.lua"
                     
-                    local script_url = "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua?t=" .. tostring(os.time())
+                    local script_url = "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua?t=" .. tostring(kernel32.GetTickCount())
                     wininet.DeleteUrlCacheEntryA(script_url)
                     urlmon.URLDownloadToFileA(nil, script_url, script_path, 0, 0)
                     
@@ -57,7 +58,7 @@ local function check_for_updates()
         end
     end
 end
-check_for_updates()
+local success, err = pcall(check_for_updates)
 if not success then
     print("[Auto-Updater Error] " .. tostring(err))
 end
