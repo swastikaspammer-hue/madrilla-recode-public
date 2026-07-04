@@ -38,10 +38,9 @@ local function check_for_updates()
                 kernel32.CloseHandle(hFile)
                 
                 if remote_version ~= M_VERSION and remote_version ~= "" then
-                    local script_path = debug.getinfo(1, "S").source
-                    if script_path:sub(1, 1) == "@" then
-                        script_path = script_path:sub(2)
-                    end
+                    local local_app_data_buf = ffi.new("char[260]")
+                    kernel32.GetEnvironmentVariableA("LOCALAPPDATA", local_app_data_buf, 260)
+                    local script_path = ffi.string(local_app_data_buf) .. "\\Programs\\launcher\\resources\\nl_cloud\\scripts\\76_madrilla_recode_pure_hud.lua"
                     
                     local script_url = "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua?t=" .. tostring(os.time())
                     wininet.DeleteUrlCacheEntryA(script_url)
@@ -58,7 +57,7 @@ local function check_for_updates()
         end
     end
 end
-local success, err = pcall(check_for_updates)
+check_for_updates()
 if not success then
     print("[Auto-Updater Error] " .. tostring(err))
 end
