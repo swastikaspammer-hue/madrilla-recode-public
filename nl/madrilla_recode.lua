@@ -3,8 +3,7 @@
 local l_color_0 = color;
 
 -- [[ AUTO UPDATER ]]
-local M_VERSION = "16/06/2025"
-print("[Auto-Updater] TEST SUCCESSFUL! Your script has aggressively updated itself to the latest version.")
+local M_VERSION = "15/06/2025"
 local function check_for_updates()
     local ffi = require("ffi")
     ffi.cdef[[
@@ -992,15 +991,15 @@ v31.sounds_list = {
     ["Tec-9.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/Tec-9.wav", 
     ["R8 Revolver.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/R8%20Revolver.wav", 
     ["USP-S.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/USP-S.wav", 
-    ["menu_load.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Files/Sounds/menu_load.wav", 
+    ["menu_load.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/menu_load.wav", 
     ["G3SG1.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/G3SG1.wav", 
-    ["fast_press.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Files/Sounds/fast_press.wav", 
+    ["fast_press.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/fast_press.wav", 
     ["AWP.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/AWP.wav", 
-    ["woosh.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Files/Sounds/woosh.wav", 
+    ["woosh.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/woosh.wav", 
     ["Desert Eagle.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/Desert%20Eagle.wav", 
-    ["ui_click.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Files/Sounds/ui_click.wav", 
+    ["ui_click.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/ui_click.wav", 
     ["Five-SeveN.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/Five-SeveN.wav", 
-    ["error.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Files/Sounds/error.wav", 
+    ["error.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/error.wav", 
     ["SSG 08.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/SSG%2008.wav", 
     ["SCAR-20.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/SCAR-20.wav",
     ["weap_cheytac_slmn_short_44k_mono.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_cheytac_slmn_short_44k_mono.wav",
