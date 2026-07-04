@@ -3,7 +3,8 @@
 local l_color_0 = color;
 
 -- [[ AUTO UPDATER ]]
-local M_VERSION = "15/06/2025"
+local M_VERSION = "16/06/2025"
+print("[Auto-Updater] TEST SUCCESSFUL! Your script has aggressively updated itself to the latest version.")
 local function check_for_updates()
     local ffi = require("ffi")
     ffi.cdef[[
