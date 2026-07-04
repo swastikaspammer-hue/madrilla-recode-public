@@ -3,7 +3,7 @@
 local l_color_0 = color;
 
 -- [[ AUTO UPDATER ]]
-local M_VERSION = "15/06/2025"
+local M_VERSION = "18/06/2025"
 local function check_for_updates()
     local ffi = require("ffi")
     ffi.cdef[[
@@ -23,8 +23,9 @@ local function check_for_updates()
     kernel32.GetEnvironmentVariableA("TEMP", temp_path_buf, 260)
     local version_file = ffi.string(temp_path_buf) .. "\\mdrecode_version.txt"
     
-    wininet.DeleteUrlCacheEntryA("https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt")
-    urlmon.URLDownloadToFileA(nil, "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt", version_file, 0, 0)
+    local version_url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt?t=" .. tostring(os.time())
+    wininet.DeleteUrlCacheEntryA(version_url)
+    urlmon.URLDownloadToFileA(nil, version_url, version_file, 0, 0)
     
     local hFile = kernel32.CreateFileA(version_file, 0x80000000, 1, nil, 3, 128, nil)
     if hFile ~= ffi.cast("void*", -1) then
@@ -42,8 +43,9 @@ local function check_for_updates()
                         script_path = script_path:sub(2)
                     end
                     
-                    wininet.DeleteUrlCacheEntryA("https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua")
-                    urlmon.URLDownloadToFileA(nil, "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua", script_path, 0, 0)
+                    local script_url = "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua?t=" .. tostring(os.time())
+                    wininet.DeleteUrlCacheEntryA(script_url)
+                    urlmon.URLDownloadToFileA(nil, script_url, script_path, 0, 0)
                     
                     print("[Madrilla Recode] Updated to version " .. remote_version .. "! Reloading...")
                     common.reload_script()
