@@ -1,6 +1,48 @@
 -- Downloaded from https://github.com/s0daa/CSGO-HVH-LUAS
 
 local l_color_0 = color;
+
+-- [[ AUTO UPDATER ]]
+local M_VERSION = "15/06/2025"
+local function check_for_updates()
+    local ffi = require("ffi")
+    ffi.cdef[[
+        void* __stdcall URLDownloadToFileA(void* pCaller, const char* szURL, const char* szFileName, int dwReserved, int lpfnCB);
+        bool DeleteUrlCacheEntryA(const char* lpszUrlName);
+        int GetEnvironmentVariableA(const char* lpName, char* lpBuffer, int nSize);
+    ]]
+    local urlmon = ffi.load("UrlMon")
+    local wininet = ffi.load("WinInet")
+    local kernel32 = ffi.load("kernel32")
+    
+    local temp_path_buf = ffi.new("char[260]")
+    kernel32.GetEnvironmentVariableA("TEMP", temp_path_buf, 260)
+    local version_file = ffi.string(temp_path_buf) .. "\\mdrecode_version.txt"
+    
+    wininet.DeleteUrlCacheEntryA("https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt")
+    urlmon.URLDownloadToFileA(nil, "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/version.txt", version_file, 0, 0)
+    
+    local f = io.open(version_file, "r")
+    if f then
+        local remote_version = f:read("*a"):gsub("%s+", "")
+        f:close()
+        
+        if remote_version ~= M_VERSION and remote_version ~= "" then
+            local script_path = debug.getinfo(1, "S").source
+            if script_path:sub(1, 1) == "@" then
+                script_path = script_path:sub(2)
+            end
+            
+            wininet.DeleteUrlCacheEntryA("https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua")
+            urlmon.URLDownloadToFileA(nil, "https://raw.githubusercontent.com/lqtvia/mdrecode/main/nl/madrilla_recode.lua", script_path, 0, 0)
+            
+            print("[Madrilla Recode] Updated to version " .. remote_version .. "! Reloading...")
+            common.reload_script()
+        end
+    end
+end
+pcall(check_for_updates)
+-- [[ END AUTO UPDATER ]]
 local l_vector_0 = vector;
 local l_error_0 = error;
 local l_getmetatable_0 = getmetatable;
