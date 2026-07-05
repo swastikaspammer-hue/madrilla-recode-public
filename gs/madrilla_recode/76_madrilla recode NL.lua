@@ -7201,10 +7201,29 @@ do
             local pitch = math.atan2(-dz, horiz_dist)
             local yaw = math.atan2(dy, dx)
 
-            -- If the target is obstructed (e.g. on a ledge above us), throw at our toes
-            if is_obstructed then
-                pitch = math.rad(89) -- aim straight down
-                yaw = 0
+            -- Determine throw type based on distance to landing spot
+            local drop_dist = 150
+            local med_dist = 330
+            local hold_attack1 = false
+            local hold_attack2 = false
+            local throw_speed = smoke_helper.THROW_SPEED
+            local comp_factor = 1.25
+
+            if is_obstructed or dist_to_land_3d <= drop_dist then
+                hold_attack2 = true
+                throw_speed = 300
+                comp_factor = 0 -- Disable compensation for drops to prevent wild aim snaps when running
+                if is_obstructed then
+                    pitch = math.rad(89) -- aim straight down
+                    yaw = 0
+                end
+            elseif dist_to_land_3d <= med_dist then
+                hold_attack1 = true
+                hold_attack2 = true
+                throw_speed = 500
+                comp_factor = 0.6
+            else
+                hold_attack1 = true
             end
 
             -- Build the unit direction vector
@@ -7214,10 +7233,9 @@ do
 
             -- Compensate: desired_velocity = direction * throw_speed
             -- actual_throw = desired_velocity - player_velocity * compensation_factor
-            local comp_factor = 1.25
-            local comp_x = dir_x * smoke_helper.THROW_SPEED - vel.x * comp_factor
-            local comp_y = dir_y * smoke_helper.THROW_SPEED - vel.y * comp_factor
-            local comp_z = dir_z * smoke_helper.THROW_SPEED - vel.z * comp_factor
+            local comp_x = dir_x * throw_speed - vel.x * comp_factor
+            local comp_y = dir_y * throw_speed - vel.y * comp_factor
+            local comp_z = dir_z * throw_speed - vel.z * comp_factor
 
             -- Convert compensated vector back to view angles
             local comp_horiz = math.sqrt(comp_x * comp_x + comp_y * comp_y)
@@ -7225,20 +7243,6 @@ do
             cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
 
             if is_auto then
-                -- Determine throw type based on distance to landing spot
-                local drop_dist = 150
-                local med_dist = 330
-                local hold_attack1 = false
-                local hold_attack2 = false
-
-                if is_obstructed or dist_to_land_3d <= drop_dist then
-                    hold_attack2 = true
-                elseif dist_to_land_3d <= med_dist then
-                    hold_attack1 = true
-                    hold_attack2 = true
-                else
-                    hold_attack1 = true
-                end
 
                 -- Handle the throw: hold attack until pin is pulled, then release when in sync range
                 if smoke_helper.is_throwing then
