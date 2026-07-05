@@ -7106,7 +7106,7 @@ events.render:set(function()
 end)
 
 -- [[ SMOKE HELPER ]]
-local native_smoke_key = ui.create("Madrilla", "Smoke helper key", "Hotkey")
+local native_smoke_key = ui.create("Misc", "Madrilla Helper"):hotkey("Smoke helper key")
 do
     local smoke_helper = {
         targets = {},           -- array of all grenade warnings this tick
