@@ -7183,19 +7183,19 @@ do
                 local score = dist_2d -- Default sort by distance
 
                 if manual_override and is_holding_smoke then
-                    local tr = utils.trace_line(eye_pos, t.origin, me)
-                    if tr.fraction == 1 then
+                    local pitch = math.deg(math.atan2(-dz, dist_2d))
+                    local yaw = math.deg(math.atan2(dy, dx))
+                    
+                    local delta_pitch = math.abs(view_angles.x - pitch)
+                    local delta_yaw = view_angles.y - yaw
+                    while delta_yaw > 180 do delta_yaw = delta_yaw - 360 end
+                    while delta_yaw < -180 do delta_yaw = delta_yaw + 360 end
+                    delta_yaw = math.abs(delta_yaw)
+                    
+                    local fov = math.sqrt(delta_pitch^2 + delta_yaw^2)
+                    if fov < 60 then
                         is_valid = true
-                        local pitch = math.deg(math.atan2(-dz, dist_2d))
-                        local yaw = math.deg(math.atan2(dy, dx))
-                        
-                        local delta_pitch = math.abs(view_angles.x - pitch)
-                        local delta_yaw = view_angles.y - yaw
-                        while delta_yaw > 180 do delta_yaw = delta_yaw - 360 end
-                        while delta_yaw < -180 do delta_yaw = delta_yaw + 360 end
-                        delta_yaw = math.abs(delta_yaw)
-                        
-                        score = math.sqrt(delta_pitch^2 + delta_yaw^2)
+                        score = fov
                     end
                 elseif in_auto_range then
                     is_valid = true
@@ -7244,35 +7244,10 @@ do
             return
         end
 
-        -- Trace to check line of sight directly to the warning origin
-        local tr = utils.trace_line(eye_pos, target, me)
-        local is_obstructed = tr.fraction < 1
-
-        if wep_name == "Smoke Grenade" then
-            -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
-            local vel = me.m_vecVelocity
-
-            -- Calculate the desired throw direction vector
-            local horiz_dist = math.sqrt(dx * dx + dy * dy)
-            local pitch = math.atan2(-dz, horiz_dist)
-            local yaw = math.atan2(dy, dx)
-
-            -- Determine throw type based on distance to landing spot
-            local drop_dist = 150
-            local med_dist = 330
-            local hold_attack1 = false
-            local hold_attack2 = false
-            local throw_speed = smoke_helper.THROW_SPEED
-            local comp_factor = 1.25
-
-            if is_obstructed or dist_to_land_3d <= drop_dist then
+            if dist_to_land_3d <= drop_dist then
                 hold_attack2 = true
                 throw_speed = 300
                 comp_factor = 0 -- Disable compensation for drops to prevent wild aim snaps when running
-                if is_obstructed then
-                    pitch = math.rad(89) -- aim straight down
-                    yaw = 0
-                end
             elseif dist_to_land_3d <= med_dist then
                 hold_attack1 = true
                 hold_attack2 = true
