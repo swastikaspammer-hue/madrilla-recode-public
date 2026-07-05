@@ -7101,27 +7101,22 @@ end)
 -- [[ SMOKE HELPER ]]
 do
     local smoke_helper = {
-        target = nil,           -- cached grenade target position
-        target_time = 0,        -- when we received the warning
+        target = nil,           -- updated every tick by grenade_warning
         last_switch_time = 0,   -- rate limit weapon switch
-        is_throwing = false,    -- are we currently in a throw sequence
-        THROW_SPEED = 750,      -- smoke grenade throw speed (source engine constant)
-        MAX_DISTANCE = 1000,    -- max distance to attempt
-        TARGET_LIFETIME = 3,    -- seconds before target expires
-        SWITCH_COOLDOWN = 1,    -- seconds between weapon switch attempts
+        MAX_DISTANCE = 1000,
+        SWITCH_COOLDOWN = 1,    -- wait 1s between weapon switch attempts to prevent disconnect spam
+        THROW_SPEED = 750
     }
 
-    -- Capture incoming grenade warnings (smoke, flash, molotov — but not frags)
     events.grenade_warning:set(function(e)
         if e.type == "Frag" then return end
         if not v51.get("enable_smoke_helper") then return end
-        -- Store a copy of the origin so we don't mutate it
-        smoke_helper.target = vector(e.origin.x, e.origin.y, e.origin.z - 75)
-        smoke_helper.target_time = globals.curtime
+        smoke_helper.target = e.origin
     end)
 
     events.createmove:set(function(cmd)
-        if not v51.get("enable_smoke_helper") then
+        local target = smoke_helper.target
+        if not v51.get("enable_smoke_helper") or not target then
             smoke_helper.target = nil
             return
         end
@@ -7129,87 +7124,77 @@ do
         local me = entity.get_local_player()
         if not me then return end
 
-        local target = smoke_helper.target
-        if not target then return end
-
-        -- Expire stale targets
-        if globals.curtime - smoke_helper.target_time > smoke_helper.TARGET_LIFETIME then
-            smoke_helper.target = nil
-            return
-        end
-
         local eye_pos = me:get_eye_position()
         local dx = target.x - eye_pos.x
         local dy = target.y - eye_pos.y
         local dz = target.z - eye_pos.z
         local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
 
-        -- Too far away, ignore
-        if dist > smoke_helper.MAX_DISTANCE then return end
+        -- Too far away, clear and ignore
+        if dist > smoke_helper.MAX_DISTANCE then 
+            smoke_helper.target = nil
+            return 
+        end
 
         local weapon = me:get_player_weapon()
         if not weapon then return end
         local wep_name = weapon:get_name()
 
-        -- If we don't have a smoke out, try to switch (rate limited)
-        if wep_name ~= "Smoke Grenade" then
+        -- Trace to check line of sight directly to the warning origin
+        local tr = utils.trace_line(eye_pos, target, me)
+
+        if wep_name == "Smoke Grenade" then
+            if tr.fraction == 1 then
+                -- Disable AA while aiming
+                v51.references.anti_aim_enable:override(false)
+
+                -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
+                local vel = me.m_vecVelocity
+
+                -- Calculate the desired throw direction vector
+                local horiz_dist = math.sqrt(dx * dx + dy * dy)
+                local pitch = math.atan2(-dz, horiz_dist)
+                local yaw = math.atan2(dy, dx)
+
+                -- Build the unit direction vector
+                local dir_x = math.cos(pitch) * math.cos(yaw)
+                local dir_y = math.cos(pitch) * math.sin(yaw)
+                local dir_z = -math.sin(pitch)
+
+                -- Compensate: desired_velocity = direction * throw_speed
+                -- actual_throw = desired_velocity - player_velocity * compensation_factor
+                local comp_factor = 1.25
+                local comp_x = dir_x * smoke_helper.THROW_SPEED - vel.x * comp_factor
+                local comp_y = dir_y * smoke_helper.THROW_SPEED - vel.y * comp_factor
+                local comp_z = dir_z * smoke_helper.THROW_SPEED - vel.z * comp_factor
+
+                -- Convert compensated vector back to view angles
+                local comp_horiz = math.sqrt(comp_x * comp_x + comp_y * comp_y)
+                cmd.view_angles.x = -math.deg(math.atan2(comp_z, comp_horiz))
+                cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
+
+                -- Handle the throw: hold attack until pin is pulled, then release
+                if weapon.m_bPinPulled then
+                    -- Pin pulled = release to throw
+                    cmd.in_attack = false
+                    cmd.in_attack2 = false
+                else
+                    -- Hold attack to pull pin
+                    cmd.in_attack = true
+                    cmd.in_attack2 = false
+                end
+            else
+                v51.references.anti_aim_enable:override(nil)
+            end
+        else
+            -- If we don't have a smoke out, try to switch (rate limited to avoid disconnect spam)
             if globals.curtime - smoke_helper.last_switch_time > smoke_helper.SWITCH_COOLDOWN then
                 smoke_helper.last_switch_time = globals.curtime
-                utils.console_exec("use weapon_smokegrenade")
+                utils.console_exec("use weapon_smokegrenade", cmd)
             end
-            return
         end
 
-        -- Trace to check line of sight
-        local tr = utils.trace_line(eye_pos, target, me)
-        if tr.fraction < 1 then
-            -- Can't see the target, clear it
-            smoke_helper.target = nil
-            return
-        end
-
-        -- Disable AA while aiming
-        v51.references.anti_aim_enable:override(false)
-
-        -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
-        local vel = me.m_vecVelocity
-
-        -- Calculate the desired throw direction vector
-        local horiz_dist = math.sqrt(dx * dx + dy * dy)
-        local pitch = math.atan2(-dz, horiz_dist)
-        local yaw = math.atan2(dy, dx)
-
-        -- Build the unit direction vector
-        local dir_x = math.cos(pitch) * math.cos(yaw)
-        local dir_y = math.cos(pitch) * math.sin(yaw)
-        local dir_z = -math.sin(pitch)
-
-        -- Compensate: desired_velocity = direction * throw_speed
-        -- actual_throw = desired_velocity - player_velocity * compensation_factor
-        -- So we aim where (throw_vec + player_vel) = target_direction * speed
-        local comp_factor = 1.25
-        local comp_x = dir_x * smoke_helper.THROW_SPEED - vel.x * comp_factor
-        local comp_y = dir_y * smoke_helper.THROW_SPEED - vel.y * comp_factor
-        local comp_z = dir_z * smoke_helper.THROW_SPEED - vel.z * comp_factor
-
-        -- Convert compensated vector back to view angles
-        local comp_horiz = math.sqrt(comp_x * comp_x + comp_y * comp_y)
-        cmd.view_angles.x = -math.deg(math.atan2(comp_z, comp_horiz))
-        cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
-
-        -- Handle the throw: hold attack until pin is pulled, then release
-        if weapon.m_bPinPulled then
-            -- Pin pulled = release to throw
-            cmd.in_attack = false
-            cmd.in_attack2 = false
-            smoke_helper.target = nil
-            smoke_helper.is_throwing = false
-            v51.references.anti_aim_enable:override(nil)
-        else
-            -- Hold attack to pull pin
-            cmd.in_attack = true
-            cmd.in_attack2 = false
-            smoke_helper.is_throwing = true
-        end
+        -- Clear target at the end of the tick (relies on grenade_warning firing every tick to replenish)
+        smoke_helper.target = nil
     end)
 end
