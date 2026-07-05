@@ -7178,7 +7178,16 @@ do
                 local dist_2d = math.sqrt(dx * dx + dy * dy)
                 local dist_z = math.abs(dz)
                 
-                local in_auto_range = dist_2d <= max_dist and dist_z <= vert_dist
+                local p_z = eye_pos.z
+                local t_z = t.origin.z + 10 -- Slightly above ground to avoid floor bumps
+                local tr_player_height = utils.trace_line(eye_pos, vector(t.origin.x, t.origin.y, p_z), me)
+                local tr_molly_height = utils.trace_line(vector(eye_pos.x, eye_pos.y, t_z), vector(t.origin.x, t.origin.y, t_z), me)
+                
+                -- If BOTH horizontal traces hit something, it's a solid wall blocking the entire path.
+                -- If at least one trace is clear, there is an open path (like over a ledge or under an overhang).
+                local wall_blocks = (tr_player_height.fraction < 1) and (tr_molly_height.fraction < 1)
+                
+                local in_auto_range = dist_2d <= max_dist and dist_z <= vert_dist and not wall_blocks
                 local is_valid = false
                 local score = dist_2d -- Default sort by distance
 
@@ -7200,7 +7209,10 @@ do
                             score = fov
                         end
                     end
-                elseif in_auto_range then
+                end
+                
+                -- Fallback to auto deploy if manual override didn't select it
+                if not is_valid and in_auto_range then
                     is_valid = true
                 end
 
