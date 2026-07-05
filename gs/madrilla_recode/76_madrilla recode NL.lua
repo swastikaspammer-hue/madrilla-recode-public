@@ -7132,7 +7132,7 @@ do
     end)
 
     events.createmove:set(function(cmd)
-        if not v51.get("enable_smoke_helper") or not v51.get_bind("smoke_helper_key") then
+        if not v51.get("enable_smoke_helper") or not v51.get_bind("Smoke helper key") then
             smoke_helper.active_target = nil
             smoke_helper.targets = {}
             return
