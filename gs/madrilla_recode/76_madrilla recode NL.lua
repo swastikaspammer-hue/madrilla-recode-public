@@ -7117,6 +7117,7 @@ do
         target_time = 0,        -- when we received the warning
         last_switch_time = 0,   -- rate limit weapon switch
         is_throwing = false,    -- are we currently releasing the throw?
+        seen_entity = false,    -- have we successfully tracked the entity?
         MAX_DISTANCE = 1000,
         SWITCH_COOLDOWN = 1,    -- wait 1s between weapon switch attempts to prevent disconnect spam
         THROW_SPEED = 750
@@ -7133,6 +7134,7 @@ do
         local target = smoke_helper.target
         if not v51.get("enable_smoke_helper") or not target then
             smoke_helper.target = nil
+            smoke_helper.seen_entity = false
             return
         end
 
@@ -7166,14 +7168,21 @@ do
 
         -- Check distance to the projectile entity itself
         local molly_ent = smoke_helper.entity
-        local dist_to_impact = 0
+        local dist_to_impact = 9999 -- Default to very far away until we actually see it
         if molly_ent and type(molly_ent.get_origin) == "function" then
             -- Use pcall in case the entity is destroyed/invalid
             local pcall_success, ent_origin = pcall(function() return molly_ent:get_origin() end)
             if pcall_success and ent_origin then
+                smoke_helper.seen_entity = true
                 -- Distance from the flying projectile to its predicted landing spot
                 dist_to_impact = math.sqrt((ent_origin.x - target.x)^2 + (ent_origin.y - target.y)^2 + (ent_origin.z - target.z)^2)
+            elseif smoke_helper.seen_entity then
+                -- We saw it before, but now pcall failed (entity destroyed upon landing)
+                dist_to_impact = 0
             end
+        elseif smoke_helper.seen_entity then
+            -- We saw it before, but now the pointer is completely invalid
+            dist_to_impact = 0
         end
 
         -- Wait until the molotov is in preparation range before doing ANYTHING (aiming or switching)
