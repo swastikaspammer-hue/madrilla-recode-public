@@ -7183,19 +7183,22 @@ do
                 local score = dist_2d -- Default sort by distance
 
                 if manual_override and is_holding_smoke then
-                    local pitch = math.deg(math.atan2(-dz, dist_2d))
-                    local yaw = math.deg(math.atan2(dy, dx))
-                    
-                    local delta_pitch = math.abs(view_angles.x - pitch)
-                    local delta_yaw = view_angles.y - yaw
-                    while delta_yaw > 180 do delta_yaw = delta_yaw - 360 end
-                    while delta_yaw < -180 do delta_yaw = delta_yaw + 360 end
-                    delta_yaw = math.abs(delta_yaw)
-                    
-                    local fov = math.sqrt(delta_pitch^2 + delta_yaw^2)
-                    if fov < 60 then
-                        is_valid = true
-                        score = fov
+                    local tr = utils.trace_line(eye_pos, t.origin, me)
+                    if tr.fraction == 1 then
+                        local pitch = math.deg(math.atan2(-dz, dist_2d))
+                        local yaw = math.deg(math.atan2(dy, dx))
+                        
+                        local delta_pitch = math.abs(view_angles.x - pitch)
+                        local delta_yaw = view_angles.y - yaw
+                        while delta_yaw > 180 do delta_yaw = delta_yaw - 360 end
+                        while delta_yaw < -180 do delta_yaw = delta_yaw + 360 end
+                        delta_yaw = math.abs(delta_yaw)
+                        
+                        local fov = math.sqrt(delta_pitch^2 + delta_yaw^2)
+                        if fov < 60 then
+                            is_valid = true
+                            score = fov
+                        end
                     end
                 elseif in_auto_range then
                     is_valid = true
