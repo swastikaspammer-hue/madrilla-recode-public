@@ -3081,7 +3081,7 @@ v51.initialize_elements = function()
     v51.new("hit_color", v51.create_color, v758, "Hit color", l_color_0(255));
     v51.new("miss_color", v51.create_color, v758, "Miss color", l_color_0(255));
     v51.new("manuals_indicators", v51.create_checkbox, v758, "Enable manuals indicators");
-    v757 = v51.create_table(v755, "General", false, 7);
+    v757 = v51.create_table(v755, "General", false, 4);
     v51.new("clantag", v51.create_checkbox, v757, "Enable clantag");
     v51.new("killsay", v51.create_checkbox, v757, "Enable killsay");
     v51.new("round_flash", v51.create_checkbox, v757, "Notify on round start");
@@ -3094,12 +3094,6 @@ v51.initialize_elements = function()
         [6] = "Blood Splash", 
         [7] = "Unsused elements"
     }, v39, true);
-    v51.new("enable_smoke_helper", v51.create_checkbox, v757, "Smoke helper");
-    v51.new("smoke_helper_manual", v51.create_checkbox, v757, "Manual crosshair override");
-    v51.new("smoke_helper_mode", v51.create_list, v757, "Smoke helper mode", {
-        "Auto deploy",
-        "Aim helper only"
-    });
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
@@ -3145,6 +3139,15 @@ v51.initialize_elements = function()
             v51.new(v36("%s_noscope_distance", v779), v51.create_slider, v781, "No scope distance", 0, 1000, 500);
         end;
     end;
+    
+    local v762 = v51.create_table(v755, "Grenades", true, 3);
+    v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
+    v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
+    v51.new("smoke_helper_mode", v51.create_list, v762, "Smoke helper mode", {
+        "Auto deploy",
+        "Aim helper only"
+    });
+
     if v49.keyboard_handle then
         v757 = v51.create_table(v756, "result", true, 16);
         v758 = v51.create_text(v757, "search_result", "");
