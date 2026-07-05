@@ -3081,7 +3081,7 @@ v51.initialize_elements = function()
     v51.new("hit_color", v51.create_color, v758, "Hit color", l_color_0(255));
     v51.new("miss_color", v51.create_color, v758, "Miss color", l_color_0(255));
     v51.new("manuals_indicators", v51.create_checkbox, v758, "Enable manuals indicators");
-    v757 = v51.create_table(v755, "General", false, 12);
+    v757 = v51.create_table(v755, "General", false, 13);
     v51.new("clantag", v51.create_checkbox, v757, "Enable clantag");
     v51.new("killsay", v51.create_checkbox, v757, "Enable killsay");
     v51.new("round_flash", v51.create_checkbox, v757, "Notify on round start");
@@ -3100,7 +3100,8 @@ v51.initialize_elements = function()
         "Auto deploy",
         "Aim helper only"
     });
-    v51.new("smoke_helper_distance", v51.create_slider, v757, "Distance threshold", 0, 1000, 250);
+    v51.new("smoke_helper_distance", v51.create_slider, v757, "Horizontal threshold", 0, 1000, 250);
+    v51.new("smoke_helper_vert_dist", v51.create_slider, v757, "Vertical threshold", 0, 1000, 350);
     v51.new("smoke_helper_sync", v51.create_slider, v757, "Deploy proximity to ground", 0, 1500, 500);
     v51.new("smoke_helper_prep", v51.create_slider, v757, "Prep proximity to ground", 0, 3000, 1200);
     v51.new("smoke_helper_drop_dist", v51.create_slider, v757, "Underhand drop max dist", 0, 500, 150);
@@ -3335,6 +3336,7 @@ v51.organize_elements = function()
                 v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_distance", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_vert_dist", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_sync", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_prep", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_drop_dist", v51.get("enable_smoke_helper"));
@@ -7153,12 +7155,15 @@ do
         local dz = target.z - eye_pos.z
         local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
         local max_dist = v51.get("smoke_helper_distance")
+        local vert_dist = v51.get("smoke_helper_vert_dist")
         local sync_dist = v51.get("smoke_helper_sync")
 
-        local dist_to_land = math.sqrt(dx * dx + dy * dy + dz * dz)
+        local dist_to_land_3d = math.sqrt(dx * dx + dy * dy + dz * dz)
+        local dist_to_land_2d = math.sqrt(dx * dx + dy * dy)
+        local dist_to_land_z = math.abs(dz)
 
-        -- Only trigger if the predicted landing spot is within the user's distance threshold
-        if dist_to_land > max_dist then 
+        -- Only trigger if the predicted landing spot is within the horizontal AND vertical thresholds
+        if dist_to_land_2d > max_dist or dist_to_land_z > vert_dist then 
             smoke_helper.target = nil
             smoke_helper.entity = nil
             return 
@@ -7238,9 +7243,9 @@ do
                 local hold_attack1 = false
                 local hold_attack2 = false
 
-                if dist_to_land <= drop_dist then
+                if dist_to_land_3d <= drop_dist then
                     hold_attack2 = true
-                elseif dist_to_land <= med_dist then
+                elseif dist_to_land_3d <= med_dist then
                     hold_attack1 = true
                     hold_attack2 = true
                 else
