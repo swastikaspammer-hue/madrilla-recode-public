@@ -3081,7 +3081,7 @@ v51.initialize_elements = function()
     v51.new("hit_color", v51.create_color, v758, "Hit color", l_color_0(255));
     v51.new("miss_color", v51.create_color, v758, "Miss color", l_color_0(255));
     v51.new("manuals_indicators", v51.create_checkbox, v758, "Enable manuals indicators");
-    v757 = v51.create_table(v755, "General", false, 9);
+    v757 = v51.create_table(v755, "General", false, 10);
     v51.new("clantag", v51.create_checkbox, v757, "Enable clantag");
     v51.new("killsay", v51.create_checkbox, v757, "Enable killsay");
     v51.new("round_flash", v51.create_checkbox, v757, "Notify on round start");
@@ -3095,6 +3095,7 @@ v51.initialize_elements = function()
         [7] = "Unsused elements"
     }, v39, true);
     v51.new("enable_smoke_helper", v51.create_checkbox, v757, "Smoke helper");
+    v51.new("smoke_helper_key", v51.create_keybind, v757, "Smoke helper key", 0, false);
     v51.new("smoke_helper_mode", v51.create_list, v757, "Smoke helper mode", {
         "Auto deploy",
         "Aim helper only"
@@ -3329,6 +3330,7 @@ v51.organize_elements = function()
                 v51.visible("miss_color", v51.get("enable_shots"));
                 v51.visible("manuals_indicators", v51.get("override_anti_aim"));
             elseif v51.active_tab == 5 then
+                v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_distance", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_sync", v51.get("enable_smoke_helper"));
@@ -7132,7 +7134,7 @@ do
 
     events.createmove:set(function(cmd)
         local target = smoke_helper.target
-        if not v51.get("enable_smoke_helper") or not target then
+        if not v51.get("enable_smoke_helper") or not v51.get("smoke_helper_key") or not target then
             smoke_helper.target = nil
             smoke_helper.seen_entity = false
             return
