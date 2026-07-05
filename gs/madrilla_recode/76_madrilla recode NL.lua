@@ -3120,7 +3120,7 @@ v51.initialize_elements = function()
         [2] = "2018 Sounds"
     });
     v51.new("weapons_sounds_volume", v51.create_slider, v759, "Weapons volume", 0, 100, 30);
-    local v762 = v51.create_table(v755, "Grenades", true, 4);
+    local v762 = v51.create_table(v755, "Grenades", true, 3);
     v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
     v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
     v51.new("smoke_helper_mode", v51.create_list, v762, "Smoke helper mode", {
@@ -3129,12 +3129,12 @@ v51.initialize_elements = function()
     });
     v51.create_text(v762, "bind_hint", "Bind the hotkey in the native LUA tab -> Madrilla Helper");
 
-    v761 = v51.create_table(v755, "Weapons", true, 1);
+    v761 = v51.create_table(v755, "Weapons", false, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
     for v778 = 1, #v51.weapons do
         local v779 = v51.weapons[v778];
-        local v780 = v51.create_table(v755, v36("%s exploit", v779), false, 5);
-        local v781 = v51.create_table(v755, v36("%s hitchace", v779), true, 6);
+        local v780 = v51.create_table(v755, v36("%s exploit", v779), false, 3);
+        local v781 = v51.create_table(v755, v36("%s hitchace", v779), true, 3);
         v779 = v37(v779);
         v51.new(v36("%s_hideshots", v779), v51.create_checkbox, v780, "Adaptive hideshots");
         v51.new(v36("%s_uncharge_attack", v779), v51.create_checkbox, v780, "Uncharge attack");
@@ -3147,7 +3147,7 @@ v51.initialize_elements = function()
             v51.new(v36("%s_noscope_hitchance", v779), v51.create_slider, v781, "No scope hitchance", -1, 100, -1, v39, {
                 [-1] = "Disabled"
             });
-            v51.new(v36("%s_noscope_distance", v779), v51.create_slider, v781, "No scope distance", 0, 1000, 500);
+            v51.new(v36("%s_noscope_distance", v779), v51.create_slider, v781, "Distance limit", 0, 1000, 350);
         end;
     end;
     if v49.keyboard_handle then
@@ -7111,7 +7111,7 @@ events.render:set(function()
 end)
 
 -- [[ SMOKE HELPER ]]
-local native_smoke_key = ui.create("Misc", "Madrilla Helper"):hotkey("Smoke helper key")
+local native_smoke_key = ui.create("Misc", "Madrilla Helper"):switch("Smoke helper key")
 do
     local smoke_helper = {
         targets = {},           -- array of all grenade warnings this tick
