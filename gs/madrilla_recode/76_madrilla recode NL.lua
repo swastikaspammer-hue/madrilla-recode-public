@@ -3120,14 +3120,14 @@ v51.initialize_elements = function()
         [2] = "2018 Sounds"
     });
     v51.new("weapons_sounds_volume", v51.create_slider, v759, "Weapons volume", 0, 100, 30);
-    local v762 = v51.create_table(v755, "Grenades", true, 3);
+    local v762 = v51.create_table(v755, "Grenades", true, 4);
     v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
+    v51.new("smoke_helper_key", v51.create_hotkey, v762, "Smoke helper key");
     v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
     v51.new("smoke_helper_mode", v51.create_list, v762, "Smoke helper mode", {
         "Auto deploy",
         "Aim helper only"
     });
-    v51.create_text(v762, "bind_hint", "Bind the hotkey in the native LUA tab -> Madrilla Helper");
 
     v761 = v51.create_table(v755, "Weapons", false, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
@@ -3332,6 +3332,7 @@ v51.organize_elements = function()
                 v51.visible("miss_color", v51.get("enable_shots"));
                 v51.visible("manuals_indicators", v51.get("override_anti_aim"));
             elseif v51.active_tab == 5 then
+                v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_manual", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
@@ -7111,7 +7112,6 @@ events.render:set(function()
 end)
 
 -- [[ SMOKE HELPER ]]
-local native_smoke_key = ui.create("Misc", "Madrilla Helper"):switch("Smoke helper key")
 do
     local smoke_helper = {
         targets = {},           -- array of all grenade warnings this tick
@@ -7120,7 +7120,6 @@ do
         target_time = 0,        -- when we received the warning
         last_switch_time = 0,   -- rate limit weapon switch
         is_throwing = false,    -- are we currently releasing the throw?
-        seen_entity = false,    -- have we successfully tracked the entity?
         MAX_DISTANCE = 1000,
         SWITCH_COOLDOWN = 1,    -- wait 1s between weapon switch attempts to prevent disconnect spam
         THROW_SPEED = 750
@@ -7133,9 +7132,8 @@ do
     end)
 
     events.createmove:set(function(cmd)
-        if not v51.get("enable_smoke_helper") or not native_smoke_key:get() then
+        if not v51.get("enable_smoke_helper") or not v51.get_bind("smoke_helper_key") then
             smoke_helper.active_target = nil
-            smoke_helper.seen_entity = false
             smoke_helper.targets = {}
             return
         end
@@ -7218,7 +7216,6 @@ do
 
         local target = smoke_helper.active_target
         if not target then
-            smoke_helper.seen_entity = false
             return
         end
 
@@ -7231,21 +7228,14 @@ do
 
         -- Check distance to the projectile entity itself
         local molly_ent = smoke_helper.active_entity
-        local dist_to_impact = 9999 -- Default to very far away until we actually see it
+        local dist_to_impact = 0 -- Default to 0 (detonated/landed) if entity is invalid
         if molly_ent and type(molly_ent.get_origin) == "function" then
             -- Use pcall in case the entity is destroyed/invalid
             local pcall_success, ent_origin = pcall(function() return molly_ent:get_origin() end)
             if pcall_success and ent_origin then
-                smoke_helper.seen_entity = true
                 -- Distance from the flying projectile to its predicted landing spot
                 dist_to_impact = math.sqrt((ent_origin.x - target.x)^2 + (ent_origin.y - target.y)^2 + (ent_origin.z - target.z)^2)
-            elseif smoke_helper.seen_entity then
-                -- We saw it before, but now pcall failed (entity destroyed upon landing)
-                dist_to_impact = 0
             end
-        elseif smoke_helper.seen_entity then
-            -- We saw it before, but now the pointer is completely invalid
-            dist_to_impact = 0
         end
 
         -- Wait until the molotov is in preparation range before doing ANYTHING (aiming or switching)
