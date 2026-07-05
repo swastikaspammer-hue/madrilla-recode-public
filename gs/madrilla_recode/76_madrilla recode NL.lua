@@ -3095,6 +3095,10 @@ v51.initialize_elements = function()
         [7] = "Unsused elements"
     }, v39, true);
     v51.new("enable_smoke_helper", v51.create_checkbox, v757, "Smoke helper");
+    v51.new("smoke_helper_mode", v51.create_list, v757, "Smoke helper mode", {
+        "Auto deploy",
+        "Aim helper only"
+    });
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
@@ -3322,6 +3326,7 @@ v51.organize_elements = function()
                 v51.visible("miss_color", v51.get("enable_shots"));
                 v51.visible("manuals_indicators", v51.get("override_anti_aim"));
             elseif v51.active_tab == 5 then
+                v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
                     local v822 = v51.weapons[v821];
@@ -7139,6 +7144,7 @@ do
         local weapon = me:get_player_weapon()
         if not weapon then return end
         local wep_name = weapon:get_name()
+        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
 
         -- Trace to check line of sight directly to the warning origin
         local tr = utils.trace_line(eye_pos, target, me)
@@ -7173,24 +7179,28 @@ do
                 cmd.view_angles.x = -math.deg(math.atan2(comp_z, comp_horiz))
                 cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
 
-                -- Handle the throw: hold attack until pin is pulled, then release
-                if weapon.m_bPinPulled then
-                    -- Pin pulled = release to throw
-                    cmd.in_attack = false
-                    cmd.in_attack2 = false
-                else
-                    -- Hold attack to pull pin
-                    cmd.in_attack = true
-                    cmd.in_attack2 = false
+                if is_auto then
+                    -- Handle the throw: hold attack until pin is pulled, then release
+                    if weapon.m_bPinPulled then
+                        -- Pin pulled = release to throw
+                        cmd.in_attack = false
+                        cmd.in_attack2 = false
+                    else
+                        -- Hold attack to pull pin
+                        cmd.in_attack = true
+                        cmd.in_attack2 = false
+                    end
                 end
             else
                 v51.references.anti_aim_enable:override(nil)
             end
         else
-            -- If we don't have a smoke out, try to switch (rate limited to avoid disconnect spam)
-            if globals.curtime - smoke_helper.last_switch_time > smoke_helper.SWITCH_COOLDOWN then
-                smoke_helper.last_switch_time = globals.curtime
-                utils.console_exec("use weapon_smokegrenade", cmd)
+            if is_auto then
+                -- If we don't have a smoke out, try to switch (rate limited to avoid disconnect spam)
+                if globals.curtime - smoke_helper.last_switch_time > smoke_helper.SWITCH_COOLDOWN then
+                    smoke_helper.last_switch_time = globals.curtime
+                    utils.console_exec("use weapon_smokegrenade", cmd)
+                end
             end
         end
 
