@@ -7116,6 +7116,7 @@ do
         entity = nil,           -- the projectile entity
         target_time = 0,        -- when we received the warning
         last_switch_time = 0,   -- rate limit weapon switch
+        is_throwing = false,    -- are we currently releasing the throw?
         MAX_DISTANCE = 1000,
         SWITCH_COOLDOWN = 1,    -- wait 1s between weapon switch attempts to prevent disconnect spam
         THROW_SPEED = 750
@@ -7221,9 +7222,14 @@ do
 
             if is_auto then
                 -- Handle the throw: hold attack until pin is pulled, then release when in sync range
-                if weapon.m_bPinPulled then
+                if smoke_helper.is_throwing then
+                    -- We've decided to throw, force buttons released
+                    cmd.in_attack = false
+                    cmd.in_attack2 = false
+                elseif weapon.m_bPinPulled then
                     if dist_to_impact <= sync_dist then
-                        -- Pin pulled and synced = release to throw
+                        -- Pin pulled and synced = set throwing flag and release
+                        smoke_helper.is_throwing = true
                         cmd.in_attack = false
                         cmd.in_attack2 = false
                     else
@@ -7238,6 +7244,8 @@ do
                 end
             end
         else
+            -- Not holding smoke grenade, clear throwing state
+            smoke_helper.is_throwing = false
             if is_auto then
                 -- If we don't have a smoke out, try to switch (rate limited to avoid disconnect spam)
                 if globals.curtime - smoke_helper.last_switch_time > smoke_helper.SWITCH_COOLDOWN then
@@ -7247,7 +7255,9 @@ do
             end
         end
 
-        -- Clear target at the end of the tick (relies on grenade_warning firing every tick to replenish)
-        smoke_helper.target = nil
+        -- Clear target at the end of the tick unless we are actively throwing
+        if not smoke_helper.is_throwing then
+            smoke_helper.target = nil
+        end
     end)
 end
