@@ -7191,13 +7191,7 @@ do
             return
         end
 
-        -- Trace to check line of sight directly to the warning origin
-        local tr = utils.trace_line(eye_pos, target, me)
-        if tr.fraction < 1 then
-            -- Not visible, don't do anything yet (will retry next tick if still active)
-            smoke_helper.target = nil
-            return
-        end
+        -- Trace check removed to allow deploying smokes against molotovs on ledges above the player
 
         if wep_name == "Smoke Grenade" then
             -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
