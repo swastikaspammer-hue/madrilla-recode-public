@@ -7118,6 +7118,7 @@ do
         last_switch_time = 0,   -- rate limit weapon switch
         is_throwing = false,    -- are we currently releasing the throw?
         seen_entity = false,    -- have we successfully tracked the entity?
+        aa_overridden = false,  -- are we currently overriding AA?
         MAX_DISTANCE = 1000,
         SWITCH_COOLDOWN = 1,    -- wait 1s between weapon switch attempts to prevent disconnect spam
         THROW_SPEED = 750
@@ -7131,8 +7132,16 @@ do
     end)
 
     events.createmove:set(function(cmd)
+        local function restore_aa()
+            if smoke_helper.aa_overridden then
+                v51.references.anti_aim_enable:override(nil)
+                smoke_helper.aa_overridden = false
+            end
+        end
+
         local target = smoke_helper.target
         if not v51.get("enable_smoke_helper") or not target then
+            restore_aa()
             smoke_helper.target = nil
             smoke_helper.seen_entity = false
             return
@@ -7153,6 +7162,7 @@ do
 
         -- Only trigger if the predicted landing spot is within the user's distance threshold
         if dist_to_land > max_dist then 
+            restore_aa()
             smoke_helper.target = nil
             smoke_helper.entity = nil
             return 
@@ -7187,6 +7197,7 @@ do
 
         -- Wait until the molotov is in preparation range before doing ANYTHING (aiming or switching)
         if dist_to_impact > prep_dist then
+            restore_aa()
             -- Let it keep falling
             return
         end
@@ -7195,7 +7206,7 @@ do
         local tr = utils.trace_line(eye_pos, target, me)
         if tr.fraction < 1 then
             -- Not visible, don't do anything yet (will retry next tick if still active)
-            v51.references.anti_aim_enable:override(nil)
+            restore_aa()
             smoke_helper.target = nil
             return
         end
@@ -7203,6 +7214,7 @@ do
         if wep_name == "Smoke Grenade" then
             -- Disable AA while aiming
             v51.references.anti_aim_enable:override(false)
+            smoke_helper.aa_overridden = true
 
             -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
             local vel = me.m_vecVelocity
@@ -7253,6 +7265,7 @@ do
                 end
             end
         else
+            restore_aa()
             -- Not holding smoke grenade, clear throwing state
             smoke_helper.is_throwing = false
             if is_auto then
