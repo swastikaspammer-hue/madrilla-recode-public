@@ -3099,6 +3099,7 @@ v51.initialize_elements = function()
         "Auto deploy",
         "Aim helper only"
     });
+    v51.new("smoke_helper_danger", v51.create_checkbox, v757, "Only if in danger");
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
@@ -3327,6 +3328,7 @@ v51.organize_elements = function()
                 v51.visible("manuals_indicators", v51.get("override_anti_aim"));
             elseif v51.active_tab == 5 then
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_danger", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
                     local v822 = v51.weapons[v821];
@@ -7145,54 +7147,66 @@ do
         if not weapon then return end
         local wep_name = weapon:get_name()
         local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
+        local is_danger_only = v51.get("smoke_helper_danger")
+
+        -- Danger check: if enabled, only trigger if within ~300 units horizontally and not too far vertically
+        if is_danger_only then
+            local horiz_dist = math.sqrt(dx * dx + dy * dy)
+            if horiz_dist > 300 or math.abs(dz) > 200 then
+                smoke_helper.target = nil
+                return
+            end
+        end
 
         -- Trace to check line of sight directly to the warning origin
         local tr = utils.trace_line(eye_pos, target, me)
+        if tr.fraction < 1 then
+            -- Not visible, don't do anything yet (will retry next tick if still active)
+            v51.references.anti_aim_enable:override(nil)
+            smoke_helper.target = nil
+            return
+        end
 
         if wep_name == "Smoke Grenade" then
-            if tr.fraction == 1 then
-                -- Disable AA while aiming
-                v51.references.anti_aim_enable:override(false)
+            -- Disable AA while aiming
+            v51.references.anti_aim_enable:override(false)
 
-                -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
-                local vel = me.m_vecVelocity
+            -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
+            local vel = me.m_vecVelocity
 
-                -- Calculate the desired throw direction vector
-                local horiz_dist = math.sqrt(dx * dx + dy * dy)
-                local pitch = math.atan2(-dz, horiz_dist)
-                local yaw = math.atan2(dy, dx)
+            -- Calculate the desired throw direction vector
+            local horiz_dist = math.sqrt(dx * dx + dy * dy)
+            local pitch = math.atan2(-dz, horiz_dist)
+            local yaw = math.atan2(dy, dx)
 
-                -- Build the unit direction vector
-                local dir_x = math.cos(pitch) * math.cos(yaw)
-                local dir_y = math.cos(pitch) * math.sin(yaw)
-                local dir_z = -math.sin(pitch)
+            -- Build the unit direction vector
+            local dir_x = math.cos(pitch) * math.cos(yaw)
+            local dir_y = math.cos(pitch) * math.sin(yaw)
+            local dir_z = -math.sin(pitch)
 
-                -- Compensate: desired_velocity = direction * throw_speed
-                -- actual_throw = desired_velocity - player_velocity * compensation_factor
-                local comp_factor = 1.25
-                local comp_x = dir_x * smoke_helper.THROW_SPEED - vel.x * comp_factor
-                local comp_y = dir_y * smoke_helper.THROW_SPEED - vel.y * comp_factor
-                local comp_z = dir_z * smoke_helper.THROW_SPEED - vel.z * comp_factor
+            -- Compensate: desired_velocity = direction * throw_speed
+            -- actual_throw = desired_velocity - player_velocity * compensation_factor
+            local comp_factor = 1.25
+            local comp_x = dir_x * smoke_helper.THROW_SPEED - vel.x * comp_factor
+            local comp_y = dir_y * smoke_helper.THROW_SPEED - vel.y * comp_factor
+            local comp_z = dir_z * smoke_helper.THROW_SPEED - vel.z * comp_factor
 
-                -- Convert compensated vector back to view angles
-                local comp_horiz = math.sqrt(comp_x * comp_x + comp_y * comp_y)
-                cmd.view_angles.x = -math.deg(math.atan2(comp_z, comp_horiz))
-                cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
+            -- Convert compensated vector back to view angles
+            local comp_horiz = math.sqrt(comp_x * comp_x + comp_y * comp_y)
+            cmd.view_angles.x = -math.deg(math.atan2(comp_z, comp_horiz))
+            cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
 
-                if is_auto then
-                    -- Handle the throw: hold attack until pin is pulled, then release
-                    if weapon.m_bPinPulled then
-                        -- Pin pulled = release to throw
-                        cmd.in_attack = false
-                        cmd.in_attack2 = false
-                    else
-                        -- Hold attack to pull pin
-                        cmd.in_attack = true
-                        cmd.in_attack2 = false
-                    end
+            if is_auto then
+                -- Handle the throw: hold attack until pin is pulled, then release
+                if weapon.m_bPinPulled then
+                    -- Pin pulled = release to throw
+                    cmd.in_attack = false
+                    cmd.in_attack2 = false
+                else
+                    -- Hold attack to pull pin
+                    cmd.in_attack = true
+                    cmd.in_attack2 = false
                 end
-            else
-                v51.references.anti_aim_enable:override(nil)
             end
         else
             if is_auto then
