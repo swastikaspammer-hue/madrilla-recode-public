@@ -3101,6 +3101,7 @@ v51.initialize_elements = function()
     });
     v51.new("smoke_helper_distance", v51.create_slider, v757, "Distance threshold", 0, 1000, 250);
     v51.new("smoke_helper_sync", v51.create_slider, v757, "Deploy proximity to ground", 0, 1500, 500);
+    v51.new("smoke_helper_prep", v51.create_slider, v757, "Prep proximity to ground", 0, 3000, 1200);
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
@@ -3331,6 +3332,7 @@ v51.organize_elements = function()
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_distance", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_sync", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_prep", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
                     local v822 = v51.weapons[v821];
@@ -7156,6 +7158,10 @@ do
         local weapon = me:get_player_weapon()
         if not weapon then return end
         local wep_name = weapon:get_name()
+        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
+        local max_dist = v51.get("smoke_helper_distance")
+        local sync_dist = v51.get("smoke_helper_sync")
+        local prep_dist = v51.get("smoke_helper_prep")
 
         -- Check distance to the projectile entity itself
         local molly_ent = smoke_helper.entity
@@ -7167,6 +7173,12 @@ do
                 -- Distance from the flying projectile to its predicted landing spot
                 dist_to_impact = math.sqrt((ent_origin.x - target.x)^2 + (ent_origin.y - target.y)^2 + (ent_origin.z - target.z)^2)
             end
+        end
+
+        -- Wait until the molotov is in preparation range before doing ANYTHING (aiming or switching)
+        if dist_to_impact > prep_dist then
+            -- Let it keep falling
+            return
         end
 
         -- Trace to check line of sight directly to the warning origin
