@@ -3081,7 +3081,7 @@ v51.initialize_elements = function()
     v51.new("hit_color", v51.create_color, v758, "Hit color", l_color_0(255));
     v51.new("miss_color", v51.create_color, v758, "Miss color", l_color_0(255));
     v51.new("manuals_indicators", v51.create_checkbox, v758, "Enable manuals indicators");
-    v757 = v51.create_table(v755, "General", false, 7);
+    v757 = v51.create_table(v755, "General", false, 9);
     v51.new("clantag", v51.create_checkbox, v757, "Enable clantag");
     v51.new("killsay", v51.create_checkbox, v757, "Enable killsay");
     v51.new("round_flash", v51.create_checkbox, v757, "Notify on round start");
