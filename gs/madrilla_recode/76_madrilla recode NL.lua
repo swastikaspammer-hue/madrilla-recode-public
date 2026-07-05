@@ -7243,6 +7243,22 @@ do
             -- Let it keep falling
             return
         end
+        if wep_name == "Smoke Grenade" then
+            -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
+            local vel = me.m_vecVelocity
+
+            -- Calculate the desired throw direction vector
+            local horiz_dist = math.sqrt(dx * dx + dy * dy)
+            local pitch = math.atan2(-dz, horiz_dist)
+            local yaw = math.atan2(dy, dx)
+
+            -- Determine throw type based on distance to landing spot
+            local drop_dist = 150
+            local med_dist = 330
+            local hold_attack1 = false
+            local hold_attack2 = false
+            local throw_speed = smoke_helper.THROW_SPEED
+            local comp_factor = 1.25
 
             if dist_to_land_3d <= drop_dist then
                 hold_attack2 = true
