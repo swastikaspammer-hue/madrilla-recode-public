@@ -3120,13 +3120,14 @@ v51.initialize_elements = function()
         [2] = "2018 Sounds"
     });
     v51.new("weapons_sounds_volume", v51.create_slider, v759, "Weapons volume", 0, 100, 30);
-    local v762 = v51.create_table(v755, "Grenades", true, 3);
+    local v762 = v51.create_table(v755, "Grenades", true, 4);
     v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
     v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
     v51.new("smoke_helper_mode", v51.create_list, v762, "Smoke helper mode", {
         "Auto deploy",
         "Aim helper only"
     });
+    v51.create_text(v762, "bind_hint", "Bind the hotkey in the native LUA tab -> Madrilla Helper");
 
     v761 = v51.create_table(v755, "Weapons", true, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
