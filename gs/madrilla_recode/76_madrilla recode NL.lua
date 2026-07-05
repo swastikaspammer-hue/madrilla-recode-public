@@ -3095,7 +3095,7 @@ v51.initialize_elements = function()
         [7] = "Unsused elements"
     }, v39, true);
     v51.new("enable_smoke_helper", v51.create_checkbox, v757, "Smoke helper");
-    v51.new("smoke_helper_key", v51.create_keybind, v757, "Smoke helper key", 0, false);
+    v51.new("smoke_helper_key", v51.create_keybind, v757, "Smoke helper key");
     v51.new("smoke_helper_mode", v51.create_list, v757, "Smoke helper mode", {
         "Auto deploy",
         "Aim helper only"
