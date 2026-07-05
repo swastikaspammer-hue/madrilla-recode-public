@@ -1737,8 +1737,10 @@ v51.load_config = function(v431)
     end;
     for v442 = 1, #l_keybinds_0 do
         local v443 = l_keybinds_0[v442];
-        v51.binded_keys[v443._name].key = v443._key;
-        v51.binded_keys[v443._name].mode = v443._mode;
+        if v51.binded_keys[v443._name] then
+            v51.binded_keys[v443._name].key = v443._key;
+            v51.binded_keys[v443._name].mode = v443._mode;
+        end
     end;
     return l_author_0, l_date_0;
 end;
