@@ -2551,7 +2551,7 @@ do
                             if v735 > 0 then
                                 local ok_el, err_el = pcall(l_v694_0[v727._type], v729, v727, v735, v728, v696);
                                 if not ok_el then
-                                    print("ELEMENT CRASH! Type: " .. tostring(v727._type) .. " Name: " .. tostring(v727._name))
+                                    print("ELEMENT CRASH! Type: " .. tostring(v727._type) .. " Name: " .. tostring(v727._name) .. " Error: " .. tostring(err_el))
                                 end
                             end;
                             v725 = v725 + v731 * v733;
