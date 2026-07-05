@@ -3081,7 +3081,7 @@ v51.initialize_elements = function()
     v51.new("hit_color", v51.create_color, v758, "Hit color", l_color_0(255));
     v51.new("miss_color", v51.create_color, v758, "Miss color", l_color_0(255));
     v51.new("manuals_indicators", v51.create_checkbox, v758, "Enable manuals indicators");
-    v757 = v51.create_table(v755, "General", false, 13);
+    v757 = v51.create_table(v755, "General", false, 7);
     v51.new("clantag", v51.create_checkbox, v757, "Enable clantag");
     v51.new("killsay", v51.create_checkbox, v757, "Enable killsay");
     v51.new("round_flash", v51.create_checkbox, v757, "Notify on round start");
@@ -3100,12 +3100,6 @@ v51.initialize_elements = function()
         "Auto deploy",
         "Aim helper only"
     });
-    v51.new("smoke_helper_distance", v51.create_slider, v757, "Horizontal threshold", 0, 1000, 250);
-    v51.new("smoke_helper_vert_dist", v51.create_slider, v757, "Vertical threshold", 0, 1000, 350);
-    v51.new("smoke_helper_sync", v51.create_slider, v757, "Deploy proximity to ground", 0, 1500, 500);
-    v51.new("smoke_helper_prep", v51.create_slider, v757, "Prep proximity to ground", 0, 3000, 1200);
-    v51.new("smoke_helper_drop_dist", v51.create_slider, v757, "Underhand drop max dist", 0, 500, 150);
-    v51.new("smoke_helper_med_dist", v51.create_slider, v757, "Medium throw max dist", 0, 800, 330);
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
@@ -3335,12 +3329,6 @@ v51.organize_elements = function()
             elseif v51.active_tab == 5 then
                 v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_distance", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_vert_dist", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_sync", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_prep", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_drop_dist", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_med_dist", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
                     local v822 = v51.weapons[v821];
@@ -7154,9 +7142,10 @@ do
         local dy = target.y - eye_pos.y
         local dz = target.z - eye_pos.z
         local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
-        local max_dist = v51.get("smoke_helper_distance")
-        local vert_dist = v51.get("smoke_helper_vert_dist")
-        local sync_dist = v51.get("smoke_helper_sync")
+        local max_dist = 250
+        local vert_dist = 350
+        local sync_dist = 500
+        local prep_dist = 1200
 
         local dist_to_land_3d = math.sqrt(dx * dx + dy * dy + dz * dz)
         local dist_to_land_2d = math.sqrt(dx * dx + dy * dy)
@@ -7238,8 +7227,8 @@ do
 
             if is_auto then
                 -- Determine throw type based on distance to landing spot
-                local drop_dist = v51.get("smoke_helper_drop_dist")
-                local med_dist = v51.get("smoke_helper_med_dist")
+                local drop_dist = 150
+                local med_dist = 330
                 local hold_attack1 = false
                 local hold_attack2 = false
 
