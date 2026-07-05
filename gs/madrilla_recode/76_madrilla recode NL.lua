@@ -7148,6 +7148,14 @@ do
         local max_dist = 250
         local vert_dist = 350
         local sync_dist = 500
+        
+        -- Lag compensation: adjust sync_dist based on real ping so it releases the grenade earlier if ping is high
+        local net = utils.net_channel()
+        if net and net.latency and net.latency[1] then
+            -- Fall speed is approx 800 units/s. Ping is in seconds.
+            sync_dist = sync_dist + (net.latency[1] * 800)
+        end
+        
         local prep_dist = 1200
 
         if smoke_helper.is_throwing and smoke_helper.active_target then
