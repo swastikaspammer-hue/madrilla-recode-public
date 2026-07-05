@@ -3099,7 +3099,7 @@ v51.initialize_elements = function()
         "Auto deploy",
         "Aim helper only"
     });
-    v51.new("smoke_helper_danger", v51.create_checkbox, v757, "Only if in danger");
+    v51.new("smoke_helper_distance", v51.create_slider, v757, "Distance threshold", 0, 1000, 250);
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
@@ -3328,7 +3328,7 @@ v51.organize_elements = function()
                 v51.visible("manuals_indicators", v51.get("override_anti_aim"));
             elseif v51.active_tab == 5 then
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_danger", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_distance", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
                     local v822 = v51.weapons[v821];
@@ -7109,6 +7109,8 @@ end)
 do
     local smoke_helper = {
         target = nil,           -- updated every tick by grenade_warning
+        entity = nil,           -- the projectile entity
+        target_time = 0,        -- when we received the warning
         last_switch_time = 0,   -- rate limit weapon switch
         MAX_DISTANCE = 1000,
         SWITCH_COOLDOWN = 1,    -- wait 1s between weapon switch attempts to prevent disconnect spam
@@ -7119,6 +7121,7 @@ do
         if e.type == "Frag" then return end
         if not v51.get("enable_smoke_helper") then return end
         smoke_helper.target = e.origin
+        smoke_helper.entity = e.entity
     end)
 
     events.createmove:set(function(cmd)
@@ -7135,11 +7138,12 @@ do
         local dx = target.x - eye_pos.x
         local dy = target.y - eye_pos.y
         local dz = target.z - eye_pos.z
-        local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+        local dist_to_land = math.sqrt(dx * dx + dy * dy + dz * dz)
 
-        -- Too far away, clear and ignore
-        if dist > smoke_helper.MAX_DISTANCE then 
+        -- Too far away overall, clear and ignore
+        if dist_to_land > smoke_helper.MAX_DISTANCE then 
             smoke_helper.target = nil
+            smoke_helper.entity = nil
             return 
         end
 
@@ -7147,15 +7151,26 @@ do
         if not weapon then return end
         local wep_name = weapon:get_name()
         local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
-        local is_danger_only = v51.get("smoke_helper_danger")
+        local max_dist = v51.get("smoke_helper_distance")
 
-        -- Danger check: if enabled, only trigger if within ~300 units horizontally and not too far vertically
-        if is_danger_only then
-            local horiz_dist = math.sqrt(dx * dx + dy * dy)
-            if horiz_dist > 300 or math.abs(dz) > 200 then
-                smoke_helper.target = nil
-                return
+        -- Check distance to the projectile entity itself
+        local molly_ent = smoke_helper.entity
+        local dist_to_ent = dist_to_land
+        if molly_ent and type(molly_ent.get_origin) == "function" then
+            -- Use pcall in case the entity is destroyed/invalid
+            local pcall_success, ent_origin = pcall(function() return molly_ent:get_origin() end)
+            if pcall_success and ent_origin then
+                local ex = ent_origin.x - eye_pos.x
+                local ey = ent_origin.y - eye_pos.y
+                local ez = ent_origin.z - eye_pos.z
+                dist_to_ent = math.sqrt(ex * ex + ey * ey + ez * ez)
             end
+        end
+
+        -- Only trigger if the projectile is within the user's distance threshold
+        if dist_to_ent > max_dist then
+            -- We don't clear target so it can trigger as it gets closer
+            return
         end
 
         -- Trace to check line of sight directly to the warning origin
