@@ -7140,10 +7140,14 @@ do
         local dx = target.x - eye_pos.x
         local dy = target.y - eye_pos.y
         local dz = target.z - eye_pos.z
+        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
+        local max_dist = v51.get("smoke_helper_distance")
+        local sync_dist = v51.get("smoke_helper_sync")
+
         local dist_to_land = math.sqrt(dx * dx + dy * dy + dz * dz)
 
-        -- Too far away overall, clear and ignore
-        if dist_to_land > smoke_helper.MAX_DISTANCE then 
+        -- Only trigger if the predicted landing spot is within the user's distance threshold
+        if dist_to_land > max_dist then 
             smoke_helper.target = nil
             smoke_helper.entity = nil
             return 
@@ -7152,38 +7156,17 @@ do
         local weapon = me:get_player_weapon()
         if not weapon then return end
         local wep_name = weapon:get_name()
-        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
-        local max_dist = v51.get("smoke_helper_distance")
-        local sync_dist = v51.get("smoke_helper_sync")
 
         -- Check distance to the projectile entity itself
         local molly_ent = smoke_helper.entity
-        local dist_to_ent = dist_to_land
         local dist_to_impact = 0
         if molly_ent and type(molly_ent.get_origin) == "function" then
             -- Use pcall in case the entity is destroyed/invalid
             local pcall_success, ent_origin = pcall(function() return molly_ent:get_origin() end)
             if pcall_success and ent_origin then
-                local ex = ent_origin.x - eye_pos.x
-                local ey = ent_origin.y - eye_pos.y
-                local ez = ent_origin.z - eye_pos.z
-                dist_to_ent = math.sqrt(ex * ex + ey * ey + ez * ez)
-                
                 -- Distance from the flying projectile to its predicted landing spot
                 dist_to_impact = math.sqrt((ent_origin.x - target.x)^2 + (ent_origin.y - target.y)^2 + (ent_origin.z - target.z)^2)
             end
-        end
-
-        -- Only trigger if the projectile is within the user's personal distance threshold
-        if dist_to_ent > max_dist then
-            -- We don't clear target so it can trigger as it gets closer
-            return
-        end
-
-        -- Sync check: wait until the molotov is close to landing (within sync_dist)
-        if dist_to_impact > sync_dist then
-            -- Let it keep falling before we force the switch
-            return
         end
 
         -- Trace to check line of sight directly to the warning origin
@@ -7225,11 +7208,17 @@ do
             cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
 
             if is_auto then
-                -- Handle the throw: hold attack until pin is pulled, then release
+                -- Handle the throw: hold attack until pin is pulled, then release when in sync range
                 if weapon.m_bPinPulled then
-                    -- Pin pulled = release to throw
-                    cmd.in_attack = false
-                    cmd.in_attack2 = false
+                    if dist_to_impact <= sync_dist then
+                        -- Pin pulled and synced = release to throw
+                        cmd.in_attack = false
+                        cmd.in_attack2 = false
+                    else
+                        -- Keep holding it while it falls
+                        cmd.in_attack = true
+                        cmd.in_attack2 = false
+                    end
                 else
                     -- Hold attack to pull pin
                     cmd.in_attack = true
