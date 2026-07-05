@@ -3081,7 +3081,7 @@ v51.initialize_elements = function()
     v51.new("hit_color", v51.create_color, v758, "Hit color", l_color_0(255));
     v51.new("miss_color", v51.create_color, v758, "Miss color", l_color_0(255));
     v51.new("manuals_indicators", v51.create_checkbox, v758, "Enable manuals indicators");
-    v757 = v51.create_table(v755, "General", false, 7);
+    v757 = v51.create_table(v755, "General", false, 8);
     v51.new("clantag", v51.create_checkbox, v757, "Enable clantag");
     v51.new("killsay", v51.create_checkbox, v757, "Enable killsay");
     v51.new("round_flash", v51.create_checkbox, v757, "Notify on round start");
@@ -3095,6 +3095,7 @@ v51.initialize_elements = function()
         [7] = "Unsused elements"
     }, v39, true);
     v51.new("enable_smoke_helper", v51.create_checkbox, v757, "Smoke helper");
+    v51.new("smoke_helper_manual", v51.create_checkbox, v757, "Manual crosshair override");
     v51.new("smoke_helper_key", v51.create_keybind, v757, "Smoke helper key");
     v51.new("smoke_helper_mode", v51.create_list, v757, "Smoke helper mode", {
         "Auto deploy",
@@ -3328,6 +3329,7 @@ v51.organize_elements = function()
                 v51.visible("manuals_indicators", v51.get("override_anti_aim"));
             elseif v51.active_tab == 5 then
                 v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_manual", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
@@ -7108,8 +7110,9 @@ end)
 -- [[ SMOKE HELPER ]]
 do
     local smoke_helper = {
-        target = nil,           -- updated every tick by grenade_warning
-        entity = nil,           -- the projectile entity
+        targets = {},           -- array of all grenade warnings this tick
+        active_target = nil,    -- the target we picked
+        active_entity = nil,    -- the entity we picked
         target_time = 0,        -- when we received the warning
         last_switch_time = 0,   -- rate limit weapon switch
         is_throwing = false,    -- are we currently releasing the throw?
@@ -7122,49 +7125,100 @@ do
     events.grenade_warning:set(function(e)
         if e.type == "Frag" then return end
         if not v51.get("enable_smoke_helper") then return end
-        smoke_helper.target = e.origin
-        smoke_helper.entity = e.entity
+        table.insert(smoke_helper.targets, {origin = e.origin, entity = e.entity})
     end)
 
     events.createmove:set(function(cmd)
-        local target = smoke_helper.target
-        if not v51.get("enable_smoke_helper") or not v51.get("smoke_helper_key") or not target then
-            smoke_helper.target = nil
+        if not v51.get("enable_smoke_helper") or not v51.get("smoke_helper_key") then
+            smoke_helper.active_target = nil
             smoke_helper.seen_entity = false
+            smoke_helper.targets = {}
             return
         end
 
         local me = entity.get_local_player()
         if not me then return end
-
         local eye_pos = me:get_eye_position()
-        local dx = target.x - eye_pos.x
-        local dy = target.y - eye_pos.y
-        local dz = target.z - eye_pos.z
-        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
+
+        local manual_override = v51.get("smoke_helper_manual")
+        local weapon = me:get_player_weapon()
+        local wep_name = weapon and weapon:get_name() or ""
+        local is_holding_smoke = wep_name == "Smoke Grenade"
+
         local max_dist = 250
         local vert_dist = 350
         local sync_dist = 500
         local prep_dist = 1200
 
-        local dist_to_land_3d = math.sqrt(dx * dx + dy * dy + dz * dz)
-        local dist_to_land_2d = math.sqrt(dx * dx + dy * dy)
-        local dist_to_land_z = math.abs(dz)
+        if smoke_helper.is_throwing and smoke_helper.active_target then
+            -- keep going with active_target
+        else
+            smoke_helper.active_target = nil
+            smoke_helper.active_entity = nil
+            local best_target = nil
+            local best_entity = nil
+            local best_score = 999999
+            
+            local view_angles = cmd.view_angles
 
-        -- Only trigger if the predicted landing spot is within the horizontal AND vertical thresholds
-        if dist_to_land_2d > max_dist or dist_to_land_z > vert_dist then 
-            smoke_helper.target = nil
-            smoke_helper.entity = nil
-            return 
+            for i, t in ipairs(smoke_helper.targets) do
+                local dx = t.origin.x - eye_pos.x
+                local dy = t.origin.y - eye_pos.y
+                local dz = t.origin.z - eye_pos.z
+                local dist_2d = math.sqrt(dx * dx + dy * dy)
+                local dist_z = math.abs(dz)
+                
+                local in_auto_range = dist_2d <= max_dist and dist_z <= vert_dist
+                local is_valid = false
+                local score = dist_2d -- Default sort by distance
+
+                if manual_override and is_holding_smoke then
+                    local tr = utils.trace_line(eye_pos, t.origin, me)
+                    if tr.fraction == 1 then
+                        is_valid = true
+                        local pitch = math.deg(math.atan2(-dz, dist_2d))
+                        local yaw = math.deg(math.atan2(dy, dx))
+                        
+                        local delta_pitch = math.abs(view_angles.x - pitch)
+                        local delta_yaw = view_angles.y - yaw
+                        while delta_yaw > 180 do delta_yaw = delta_yaw - 360 end
+                        while delta_yaw < -180 do delta_yaw = delta_yaw + 360 end
+                        delta_yaw = math.abs(delta_yaw)
+                        
+                        score = math.sqrt(delta_pitch^2 + delta_yaw^2)
+                    end
+                elseif in_auto_range then
+                    is_valid = true
+                end
+
+                if is_valid and score < best_score then
+                    best_score = score
+                    best_target = t.origin
+                    best_entity = t.entity
+                end
+            end
+
+            smoke_helper.active_target = best_target
+            smoke_helper.active_entity = best_entity
         end
 
-        local weapon = me:get_player_weapon()
-        if not weapon then return end
-        local wep_name = weapon:get_name()
+        smoke_helper.targets = {} -- Clear array for next tick
 
+        local target = smoke_helper.active_target
+        if not target then
+            smoke_helper.seen_entity = false
+            return
+        end
+
+        local dx = target.x - eye_pos.x
+        local dy = target.y - eye_pos.y
+        local dz = target.z - eye_pos.z
+        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
+        
+        local dist_to_land_3d = math.sqrt(dx * dx + dy * dy + dz * dz)
 
         -- Check distance to the projectile entity itself
-        local molly_ent = smoke_helper.entity
+        local molly_ent = smoke_helper.active_entity
         local dist_to_impact = 9999 -- Default to very far away until we actually see it
         if molly_ent and type(molly_ent.get_origin) == "function" then
             -- Use pcall in case the entity is destroyed/invalid
@@ -7280,7 +7334,8 @@ do
 
         -- Clear target at the end of the tick unless we are actively throwing
         if not smoke_helper.is_throwing then
-            smoke_helper.target = nil
+            smoke_helper.active_target = nil
+            smoke_helper.active_entity = nil
         end
     end)
 end
