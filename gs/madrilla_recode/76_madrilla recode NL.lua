@@ -3118,6 +3118,14 @@ v51.initialize_elements = function()
         [2] = "2018 Sounds"
     });
     v51.new("weapons_sounds_volume", v51.create_slider, v759, "Weapons volume", 0, 100, 30);
+    local v762 = v51.create_table(v755, "Grenades", true, 3);
+    v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
+    v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
+    v51.new("smoke_helper_mode", v51.create_list, v762, "Smoke helper mode", {
+        "Auto deploy",
+        "Aim helper only"
+    });
+
     v761 = v51.create_table(v755, "Weapons", true, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
     for v778 = 1, #v51.weapons do
@@ -3139,15 +3147,6 @@ v51.initialize_elements = function()
             v51.new(v36("%s_noscope_distance", v779), v51.create_slider, v781, "No scope distance", 0, 1000, 500);
         end;
     end;
-    
-    local v762 = v51.create_table(v755, "Grenades", true, 3);
-    v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
-    v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
-    v51.new("smoke_helper_mode", v51.create_list, v762, "Smoke helper mode", {
-        "Auto deploy",
-        "Aim helper only"
-    });
-
     if v49.keyboard_handle then
         v757 = v51.create_table(v756, "result", true, 16);
         v758 = v51.create_text(v757, "search_result", "");
