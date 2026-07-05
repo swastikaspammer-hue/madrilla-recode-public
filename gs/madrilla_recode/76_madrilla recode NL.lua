@@ -7188,7 +7188,9 @@ do
             return
         end
 
-        -- Trace check removed to allow deploying smokes against molotovs on ledges above the player
+        -- Trace to check line of sight directly to the warning origin
+        local tr = utils.trace_line(eye_pos, target, me)
+        local is_obstructed = tr.fraction < 1
 
         if wep_name == "Smoke Grenade" then
             -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
@@ -7198,6 +7200,12 @@ do
             local horiz_dist = math.sqrt(dx * dx + dy * dy)
             local pitch = math.atan2(-dz, horiz_dist)
             local yaw = math.atan2(dy, dx)
+
+            -- If the target is obstructed (e.g. on a ledge above us), throw at our toes
+            if is_obstructed then
+                pitch = math.rad(89) -- aim straight down
+                yaw = 0
+            end
 
             -- Build the unit direction vector
             local dir_x = math.cos(pitch) * math.cos(yaw)
@@ -7223,7 +7231,7 @@ do
                 local hold_attack1 = false
                 local hold_attack2 = false
 
-                if dist_to_land_3d <= drop_dist then
+                if is_obstructed or dist_to_land_3d <= drop_dist then
                     hold_attack2 = true
                 elseif dist_to_land_3d <= med_dist then
                     hold_attack1 = true
