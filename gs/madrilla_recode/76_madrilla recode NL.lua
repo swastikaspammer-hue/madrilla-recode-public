@@ -85,7 +85,7 @@ local function check_for_updates()
         if size > 0 then
             local buf = ffi.new("char[?]", size + 1)
             local bytesRead = ffi.new("uint32_t[1]")
-            if kernel32.ReadFile(hFile, buf, size, bytesRead, nil) then
+            if kernel32.Readaile(hFile, buf, size, bytesRead, nil) then
                 local remote_version = ffi.string(buf, bytesRead[0]):gsub("%s+", "")
                 kernel32.CloseHandle(hFile)
                 
@@ -3061,7 +3061,6 @@ v51.initialize_elements = function()
     v51.new("enable_velocity_warning", v51.create_checkbox, v757, "Enable velocity warning");
     v51.new("velocity_warning_effect", v51.create_checkbox, v757, "Warning view Effect");
     v51.new("enable_watermark", v51.create_checkbox, v757, "Enable watermark");
-    v51.new("enable_smoke_helper", v51.create_checkbox, v757, "Smoke helper");
     v51.new("watermark_settings", v51.create_list, v757, "Watermark settings", {
         [1] = "Disable grid", 
         [2] = "Build", 
@@ -3095,6 +3094,7 @@ v51.initialize_elements = function()
         [6] = "Blood Splash", 
         [7] = "Unsused elements"
     }, v39, true);
+    v51.new("enable_smoke_helper", v51.create_checkbox, v757, "Smoke helper");
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
