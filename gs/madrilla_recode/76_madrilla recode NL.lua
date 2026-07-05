@@ -3100,6 +3100,7 @@ v51.initialize_elements = function()
         "Aim helper only"
     });
     v51.new("smoke_helper_distance", v51.create_slider, v757, "Distance threshold", 0, 1000, 250);
+    v51.new("smoke_helper_sync", v51.create_slider, v757, "Deploy proximity to ground", 0, 1500, 500);
     v758 = v51.create_table(v755, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
@@ -3329,6 +3330,7 @@ v51.organize_elements = function()
             elseif v51.active_tab == 5 then
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_distance", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_sync", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
                     local v822 = v51.weapons[v821];
@@ -7152,10 +7154,12 @@ do
         local wep_name = weapon:get_name()
         local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
         local max_dist = v51.get("smoke_helper_distance")
+        local sync_dist = v51.get("smoke_helper_sync")
 
         -- Check distance to the projectile entity itself
         local molly_ent = smoke_helper.entity
         local dist_to_ent = dist_to_land
+        local dist_to_impact = 0
         if molly_ent and type(molly_ent.get_origin) == "function" then
             -- Use pcall in case the entity is destroyed/invalid
             local pcall_success, ent_origin = pcall(function() return molly_ent:get_origin() end)
@@ -7164,12 +7168,21 @@ do
                 local ey = ent_origin.y - eye_pos.y
                 local ez = ent_origin.z - eye_pos.z
                 dist_to_ent = math.sqrt(ex * ex + ey * ey + ez * ez)
+                
+                -- Distance from the flying projectile to its predicted landing spot
+                dist_to_impact = math.sqrt((ent_origin.x - target.x)^2 + (ent_origin.y - target.y)^2 + (ent_origin.z - target.z)^2)
             end
         end
 
-        -- Only trigger if the projectile is within the user's distance threshold
+        -- Only trigger if the projectile is within the user's personal distance threshold
         if dist_to_ent > max_dist then
             -- We don't clear target so it can trigger as it gets closer
+            return
+        end
+
+        -- Sync check: wait until the molotov is close to landing (within sync_dist)
+        if dist_to_impact > sync_dist then
+            -- Let it keep falling before we force the switch
             return
         end
 
