@@ -7161,10 +7161,7 @@ do
         local weapon = me:get_player_weapon()
         if not weapon then return end
         local wep_name = weapon:get_name()
-        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
-        local max_dist = v51.get("smoke_helper_distance")
-        local sync_dist = v51.get("smoke_helper_sync")
-        local prep_dist = v51.get("smoke_helper_prep")
+
 
         -- Check distance to the projectile entity itself
         local molly_ent = smoke_helper.entity
