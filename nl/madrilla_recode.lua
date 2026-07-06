@@ -8148,6 +8148,22 @@ local function check_pending_fetch()
                         next_switch = globals.realtime + current_delay
                     end
                 end
+            else
+                if pending_original_url then
+                    for i = 1, #goon_corner_urls do
+                        if goon_corner_urls[i] == pending_original_url then
+                            table.remove(goon_corner_urls, i)
+                            break
+                        end
+                    end
+                    for i = 1, #unseen_urls do
+                        if unseen_urls[i] == pending_original_url then
+                            table.remove(unseen_urls, i)
+                            break
+                        end
+                    end
+                end
+                debug_status = "Invalid format! Deleted."
             end
             
             pcall(function() ffi.C.WinExec('powershell -windowstyle hidden -command "Remove-Item -Path \'nl/goon_corner/temp_slideshow.png\' -ErrorAction SilentlyContinue"', 0) end)
