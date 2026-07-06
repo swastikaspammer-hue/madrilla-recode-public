@@ -8093,7 +8093,8 @@ local function on_render()
     local target_vol = v51 and v51.get and v51.get("goon_corner_volume") or 50
     local target_seek = v51 and v51.get and v51.get("goon_corner_seek") or 0
 
-    local is_boss_key = v51 and v51.get and v51.get("goon_corner_boss_key")
+    local boss_key_obj = v51 and v51.get and v51.get("goon_corner_boss_key")
+    local is_boss_key = type(boss_key_obj) == "table" and boss_key_obj.value or false
     if is_boss_key then
         if audio_playing then stop_asmr() end
         was_boss_key_active = true
@@ -8104,7 +8105,8 @@ local function on_render()
         end
     end
 
-    local is_skip_key = v51 and v51.get and v51.get("goon_corner_skip_key")
+    local skip_key_obj = v51 and v51.get and v51.get("goon_corner_skip_key")
+    local is_skip_key = type(skip_key_obj) == "table" and skip_key_obj.value or false
     if is_skip_key then
         if not was_skip_pressed then
             was_skip_pressed = true
