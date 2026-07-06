@@ -7368,37 +7368,36 @@ end
 local debug_status = "Downloading list..."
 local goon_corner_urls = {}
 local urls_loaded = false
-local links_path = "nl/goon_corner/links.txt"
-
-local next_link_check = 0
-local function load_links_from_file()
-    if urls_loaded then return true end
-    if globals.realtime < next_link_check then return false end
-    next_link_check = globals.realtime + 0.5
-    
-    local content = nil
-    pcall(function() content = files.read(links_path) end)
-    if content and #content > 0 then
-        goon_corner_urls = {}
-        for link in content:gmatch('"([^"]+)"') do
-            if link:find("^https?://") then
-                local lower_link = link:lower()
-                if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") then
-                    table.insert(goon_corner_urls, link)
-                end
-            end
-        end
-        if #goon_corner_urls > 0 then
-            urls_loaded = true
-            debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
-            return true
-        end
-    end
-    return false
-end
 
 pcall(function()
-    ffi.C.WinExec('powershell -windowstyle hidden -command "Remove-Item -Path \'nl/goon_corner/links.txt\' -ErrorAction SilentlyContinue; try { Invoke-WebRequest -Uri \'https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/refs/heads/main/nl/links.txt\' -OutFile \'nl/goon_corner/links.txt\' } catch {}"', 0)
+    network.get("https://paste.rs/JbRGG", {}, function(res)
+        local content = ""
+        if type(res) == "string" then
+            content = res
+        elseif type(res) == "table" and res.body then
+            content = res.body
+        else
+            debug_status = "Network Error: Unknown response type"
+            return
+        end
+        
+        if content and #content > 0 then
+            for link in content:gmatch('"([^"]+)"') do
+                if link:find("^https?://") then
+                    local lower_link = link:lower()
+                    if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") then
+                        table.insert(goon_corner_urls, link)
+                    end
+                end
+            end
+            if #goon_corner_urls > 0 then
+                urls_loaded = true
+                debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
+            else
+                debug_status = "Error: Found no links in response"
+            end
+        end
+    end)
 end)
 
 local ffi = require("ffi")
@@ -7672,10 +7671,6 @@ local function on_render()
         last_toggle_state = false
         config_loading = false
         return 
-    end
-
-    if not urls_loaded then
-        load_links_from_file()
     end
 
     if not next_switch then
