@@ -2730,6 +2730,8 @@ v51.initialize_elements = function()
     v51.new("goon_corner_enabled", v51.create_checkbox, gc_table, "Enable Goon Corner", false);
     v51.new("goon_corner_time", v51.create_slider, gc_table, "Image Delay (s)", 1, 30, 5);
     v51.new("goon_corner_crosshair", v51.create_checkbox, gc_table, "Goon Crosshair Overlay", false);
+    v51.new("goon_corner_crosshair_size", v51.create_slider, gc_table, "Crosshair Size", 10, 300, 50);
+    v51.new("goon_corner_crosshair_alpha", v51.create_slider, gc_table, "Crosshair Opacity", 0, 255, 100);
 
     v51.create_text(asmr_table, "goon_corner_asmr_track", "[Track: Goth Mommy ASMR]");
     v51.new("goon_corner_asmr_enabled", v51.create_checkbox, asmr_table, "Enable Goth ASMR", false);
@@ -8420,11 +8422,14 @@ local function on_render()
 
         local is_crosshair = v51 and v51.get and v51.get("goon_corner_crosshair")
         if is_crosshair and current_texture then
+            local cross_size_val = v51 and v51.get and v51.get("goon_corner_crosshair_size") or 50
+            local cross_alpha_val = v51 and v51.get and v51.get("goon_corner_crosshair_alpha") or 100
+            
             local screen = render.screen_size and render.screen_size() or vector(1920, 1080)
             local cx, cy = screen.x / 2, screen.y / 2
-            local cross_size = type(vector) == "function" and vector(50, 50) or type(vector) == "table" and vector(50, 50) or nil
-            local cross_pos = type(vector) == "function" and vector(cx - 25, cy - 25) or type(vector) == "table" and vector(cx - 25, cy - 25) or nil
-            local cross_clr = type(color) == "function" and color(255, 255, 255, 100) or type(color) == "table" and color(255, 255, 255, 100) or nil
+            local cross_size = type(vector) == "function" and vector(cross_size_val, cross_size_val) or type(vector) == "table" and vector(cross_size_val, cross_size_val) or nil
+            local cross_pos = type(vector) == "function" and vector(cx - cross_size_val / 2, cy - cross_size_val / 2) or type(vector) == "table" and vector(cx - cross_size_val / 2, cy - cross_size_val / 2) or nil
+            local cross_clr = type(color) == "function" and color(255, 255, 255, cross_alpha_val) or type(color) == "table" and color(255, 255, 255, cross_alpha_val) or nil
             
             if cross_clr and cross_size and cross_pos then
                 if render.texture then
