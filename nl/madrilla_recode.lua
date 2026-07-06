@@ -7672,9 +7672,6 @@ local function on_render()
 
     if not urls_loaded then
         load_links_from_file()
-        if not urls_loaded then
-            return
-        end
     end
 
     if not next_switch then
