@@ -7868,7 +7868,7 @@ local function on_render()
                 if was_dragging_seek then
                     was_dragging_seek = false
                     last_seek_time = globals.realtime
-                    local seek_ms = target_seek * 1000
+                    local seek_ms = math.floor(target_seek * 1000)
                     pcall(function() 
                         winmm.mciSendStringA("seek goth_asmr to " .. tostring(seek_ms), nil, 0, nil)
                         winmm.mciSendStringA("play goth_asmr repeat", nil, 0, nil)
