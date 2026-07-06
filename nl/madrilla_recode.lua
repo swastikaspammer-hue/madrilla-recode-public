@@ -2730,6 +2730,9 @@ v51.initialize_elements = function()
     v51.new("goon_corner_asmr_enabled", v51.create_checkbox, gc_table, "Enable Goth ASMR", false);
     v51.new("goon_corner_volume", v51.create_slider, gc_table, "ASMR Volume", 0, 100, 50);
     v51.new("goon_corner_seek", v51.create_slider, gc_table, "ASMR Seek (Sec)", 0, 2224, 0);
+    v51.new("goon_corner_crosshair", v51.create_checkbox, gc_table, "Goon Crosshair Overlay", false);
+    v51.new("goon_corner_boss_key", v51.create_keybind, gc_table, "Panic Key (Hide & Mute)");
+    v51.new("goon_corner_skip_key", v51.create_keybind, gc_table, "Instant Skip Key");
     v51.new("animation_speed", v51.create_slider, v758, "Animation speed", 1, 20, 12);
     local v759 = v51.create_table(v751, "Script", false, 4);
     v51.create_text(v759, "Resert explained", "If you experience some fps drops, \nyou can reset render cache or change performance mode");
@@ -7871,6 +7874,8 @@ local current_asmr_seek = -1
 local current_delay = 5
 local was_dragging_seek = false
 local last_seek_time = 0
+local was_skip_pressed = false
+local was_boss_key_active = false
 local asmr_pos_buf = ffi.new("char[128]")
 
 local function play_asmr()
@@ -8099,6 +8104,35 @@ local function on_render()
     current_delay = v51 and v51.get and v51.get("goon_corner_time") or 5
     local target_vol = v51 and v51.get and v51.get("goon_corner_volume") or 50
     local target_seek = v51 and v51.get and v51.get("goon_corner_seek") or 0
+
+    local is_boss_key = v51 and v51.get and v51.get("goon_corner_boss_key")
+    if is_boss_key then
+        if audio_playing then stop_asmr() end
+        was_boss_key_active = true
+        return
+    else
+        if was_boss_key_active then
+            was_boss_key_active = false
+        end
+    end
+
+    local is_skip_key = v51 and v51.get and v51.get("goon_corner_skip_key")
+    if is_skip_key then
+        if not was_skip_pressed then
+            was_skip_pressed = true
+            next_switch = 0
+            if not next_ready_texture then
+                current_texture = nil
+                is_fetching = false
+                pcall(function()
+                    os.remove("nl/goon_corner/temp_slideshow.png")
+                    os.remove("nl/goon_corner/temp_slideshow.png.tmp")
+                end)
+            end
+        end
+    else
+        was_skip_pressed = false
+    end
 
     if is_asmr_enabled then
         play_asmr()
@@ -8350,6 +8384,23 @@ local function on_render()
         if menu_open and render.rect_filled and gc_pos and gc_size then
             local resize_rect_pos = gc_pos + gc_size - vector(15, 15)
             render.rect_filled(resize_rect_pos, resize_rect_pos + vector(15, 15), accent, 0)
+        end
+
+        local is_crosshair = v51 and v51.get and v51.get("goon_corner_crosshair")
+        if is_crosshair and current_texture then
+            local screen = render.screen_size and render.screen_size() or vector(1920, 1080)
+            local cx, cy = screen.x / 2, screen.y / 2
+            local cross_size = type(vector) == "function" and vector(50, 50) or type(vector) == "table" and vector(50, 50) or nil
+            local cross_pos = type(vector) == "function" and vector(cx - 25, cy - 25) or type(vector) == "table" and vector(cx - 25, cy - 25) or nil
+            local cross_clr = type(color) == "function" and color(255, 255, 255, 100) or type(color) == "table" and color(255, 255, 255, 100) or nil
+            
+            if cross_clr and cross_size and cross_pos then
+                if render.texture then
+                    render.texture(current_texture, cross_pos, cross_size, cross_clr)
+                elseif render.image then
+                    render.image(current_texture, cross_pos, cross_size, cross_clr)
+                end
+            end
         end
     end)
 end
