@@ -8235,6 +8235,10 @@ local function on_render()
                 render.image(current_texture, gc_pos, gc_size, clr)
             end
             
+            if (is_dragging or is_resizing) and render.rect then
+                render.rect(gc_pos, gc_pos + gc_size, accent, 0, 3)
+            end
+            
             -- Media Player UI
             if is_asmr_enabled then
                 local yt_bar_height = 30
