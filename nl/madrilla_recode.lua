@@ -7367,13 +7367,21 @@ end
 -- Use direct image links from Discord, Catbox, or other standard image hosts.
 local goon_corner_urls = {}
 pcall(function()
-    network.get("https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/refs/heads/main/nl/links.txt", nil, function(res)
-        if not res or not res.body then return end
+    network.get("https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/refs/heads/main/nl/links.txt", {}, function(res)
+        if not res then
+            debug_status = "Network Error: No response"
+            return
+        end
+        if not res.body then
+            debug_status = "Network Error: No body (status: " .. tostring(res.status) .. ")"
+            return
+        end
         for link in res.body:gmatch('"([^"]+)"') do
             if link:find("^https?://") then
                 table.insert(goon_corner_urls, link)
             end
         end
+        debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
     end)
 end)
 
