@@ -7861,15 +7861,16 @@ local function on_render()
             if diff < 0 then diff = -diff end
             local mouse_down = common.is_button_down(1)
             
-            if diff > 1.5 or (was_dragging_seek and mouse_down) then
-                was_dragging_seek = mouse_down
+            if diff > 0 and mouse_down then
+                was_dragging_seek = true
                 current_asmr_seek = target_seek
-                if not mouse_down then
-                    last_seek_time = globals.realtime
-                    local seek_ms = math.floor(target_seek * 1000)
-                    pcall(function() winmm.mciSendStringA("play goth_asmr from " .. tostring(seek_ms) .. " repeat", nil, 0, nil) end)
-                end
-            elseif globals.realtime > last_seek_time + 1.0 then
+            elseif was_dragging_seek and not mouse_down then
+                was_dragging_seek = false
+                current_asmr_seek = target_seek
+                last_seek_time = globals.realtime
+                local seek_ms = math.floor(target_seek * 1000)
+                pcall(function() winmm.mciSendStringA("play goth_asmr from " .. tostring(seek_ms) .. " repeat", nil, 0, nil) end)
+            elseif not was_dragging_seek and globals.realtime > last_seek_time + 1.0 then
                 local status_ok = pcall(function() winmm.mciSendStringA("status goth_asmr position", asmr_pos_buf, 128, nil) end)
                 if status_ok then
                     local current_ms = tonumber(ffi.string(asmr_pos_buf))
