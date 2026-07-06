@@ -8000,22 +8000,37 @@ local function on_render()
                     -- Main bar background
                     render.rect_filled(yt_bar_pos, yt_bar_pos + yt_bar_size, yt_bg, 0)
                     
-                    -- YouTube Progress bar
-                    local asmr_progress = math.max(0, math.min(1, current_asmr_seek / 2224))
-                    local pb_start = yt_bar_pos
-                    local pb_end = yt_bar_pos + vector(gc_size.x * asmr_progress, 3)
-                    render.rect_filled(pb_start, pb_end, yt_red, 0)
-                    
-                    -- Text elements
-                    if render.text then
-                        local play_icon = audio_playing and "||" or "►"
-                        local safe_seek = math.max(0, current_asmr_seek)
-                        local m = math.floor(safe_seek / 60)
-                        local s = safe_seek % 60
-                        local time_str = string.format("%s  %02d:%02d / 37:04", play_icon, m, s)
+                    if not audio_playing then
+                        -- Downloading Animation
+                        local dl_bar_width = gc_size.x
+                        local bounce_width = 60
+                        local bounce_speed = 3
+                        local bounce_pos = math.abs(math.sin(globals.realtime * bounce_speed)) * (dl_bar_width - bounce_width)
+                        render.rect_filled(yt_bar_pos + vector(bounce_pos, 0), yt_bar_pos + vector(bounce_pos + bounce_width, 3), accent, 0)
                         
-                        render.text(1, yt_bar_pos + vector(8, 15), yt_white, "lc", time_str)
-                        render.text(1, yt_bar_pos + vector(gc_size.x - 8, 15), yt_gray, "rc", "Goth Mommy ASMR")
+                        if render.text then
+                            local dot_count = math.floor(globals.realtime * 2) % 4
+                            local dots = string.rep(".", dot_count)
+                            render.text(1, yt_bar_pos + vector(8, 15), yt_white, "lc", "Downloading Audio (38MB)" .. dots)
+                        end
+                    else
+                        -- YouTube Progress bar
+                        local asmr_progress = math.max(0, math.min(1, current_asmr_seek / 2224))
+                        local pb_start = yt_bar_pos
+                        local pb_end = yt_bar_pos + vector(gc_size.x * asmr_progress, 3)
+                        render.rect_filled(pb_start, pb_end, yt_red, 0)
+                        
+                        -- Text elements
+                        if render.text then
+                            local play_icon = "||"
+                            local safe_seek = math.max(0, current_asmr_seek)
+                            local m = math.floor(safe_seek / 60)
+                            local s = safe_seek % 60
+                            local time_str = string.format("%s  %02d:%02d / 37:04", play_icon, m, s)
+                            
+                            render.text(1, yt_bar_pos + vector(8, 15), yt_white, "lc", time_str)
+                            render.text(1, yt_bar_pos + vector(gc_size.x - 8, 15), yt_gray, "rc", "Goth Mommy ASMR")
+                        end
                     end
                 end
             end
