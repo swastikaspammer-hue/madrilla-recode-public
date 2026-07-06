@@ -7642,8 +7642,8 @@ local current_texture = nil
 local fetched_textures = {}
 local unseen_urls = {}
 local next_switch = nil
-local asmr_url = "https://www.dropbox.com/scl/fi/yl8iiopzseo4y05a5w5k0/BIG-TIDDY-GOTH-Roommate-Walks-In-On-You-JERKING-OFF-Fdom-Cowgirl-Creampie-Erotic-ASMR-RP.mp3?rlkey=kkb8ymqcnvarj9a3g31iaif1u&st=pxsjsmvo&e=1&dl=1"
-local asmr_path = "nl\\goon_corner\\asmr.mp3"
+local asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
+local asmr_path = "nl\\goon_corner\\asmr_mommy.mp3"
 local asmr_retry_time = 0
 local audio_playing = false
 local debug_status = "Idle"
