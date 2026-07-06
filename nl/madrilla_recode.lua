@@ -1048,7 +1048,8 @@ v31.icons_list = {
     ["load.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/load.png", 
     ["check_list.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/check_list.png", 
     ["save.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/save.png", 
-    ["close.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/close.png"
+    ["close.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/close.png",
+    ["18plus.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/18plus.png"
 };
 v31.sounds_list = {
     ["Tec-9.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/Tec-9.wav", 
