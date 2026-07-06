@@ -2728,6 +2728,7 @@ v51.initialize_elements = function()
     v51.new("goon_corner_time", v51.create_slider, gc_table, "Image Delay (s)", 1, 30, 5);
     v51.create_text(gc_table, "goon_corner_asmr_track", "[Track: Goth Mommy ASMR]");
     v51.new("goon_corner_asmr_enabled", v51.create_checkbox, gc_table, "Enable Goth ASMR", false);
+    v51.new("goon_corner_asmr_pause", v51.create_checkbox, gc_table, "Pause ASMR", false);
     v51.new("goon_corner_volume", v51.create_slider, gc_table, "ASMR Volume", 0, 100, 50);
     v51.new("goon_corner_seek", v51.create_slider, gc_table, "ASMR Seek (Sec)", 0, 2224, 0);
     v51.new("goon_corner_crosshair", v51.create_checkbox, gc_table, "Goon Crosshair Overlay", false);
@@ -7877,24 +7878,42 @@ local was_skip_pressed = false
 local was_boss_key_active = false
 local asmr_pos_buf = ffi.new("char[128]")
 
+local audio_paused = false
+local audio_initialized = false
+
 local function play_asmr()
     if audio_playing or not winmm then return end
     if globals.realtime < asmr_retry_time then return end
 
-    pcall(function() winmm.mciSendStringA("close goth_asmr", nil, 0, nil) end)
-    local status, res = pcall(function() return winmm.mciSendStringA('open "' .. asmr_path .. '" type mpegvideo alias goth_asmr', nil, 0, nil) end)
-    if status and res == 0 then
-        pcall(function() winmm.mciSendStringA("play goth_asmr repeat", nil, 0, nil) end)
-        audio_playing = true
-    else
-        asmr_retry_time = globals.realtime + 1.0
+    if not audio_initialized then
+        pcall(function() winmm.mciSendStringA("close goth_asmr", nil, 0, nil) end)
+        local status, res = pcall(function() return winmm.mciSendStringA('open "' .. asmr_path .. '" type mpegvideo alias goth_asmr', nil, 0, nil) end)
+        if status and res == 0 then
+            audio_initialized = true
+        else
+            asmr_retry_time = globals.realtime + 1.0
+            return
+        end
     end
+    
+    pcall(function() winmm.mciSendStringA("play goth_asmr repeat", nil, 0, nil) end)
+    audio_playing = true
+    audio_paused = false
+end
+
+local function pause_asmr()
+    if not audio_playing or not winmm then return end
+    pcall(function() winmm.mciSendStringA("pause goth_asmr", nil, 0, nil) end)
+    audio_playing = false
+    audio_paused = true
 end
 
 local function stop_asmr()
-    if not audio_playing or not winmm then return end
+    if (not audio_playing and not audio_paused) or not winmm then return end
     pcall(function() winmm.mciSendStringA("close goth_asmr", nil, 0, nil) end)
     audio_playing = false
+    audio_paused = false
+    audio_initialized = false
 end
 
 pcall(function()
@@ -8096,7 +8115,7 @@ local function on_render()
     local boss_key_obj = v51 and v51.get and v51.get("goon_corner_boss_key")
     local is_boss_key = type(boss_key_obj) == "table" and boss_key_obj.value or false
     if is_boss_key then
-        if audio_playing then stop_asmr() end
+        if audio_playing then pause_asmr() end
         was_boss_key_active = true
         return
     else
@@ -8124,8 +8143,14 @@ local function on_render()
         was_skip_pressed = false
     end
 
+    local is_user_paused = v51 and v51.get and v51.get("goon_corner_asmr_pause")
+
     if is_asmr_enabled then
-        play_asmr()
+        if is_user_paused then
+            pause_asmr()
+        else
+            play_asmr()
+        end
         if audio_playing and winmm then
             if target_vol ~= current_asmr_volume then
                 current_asmr_volume = target_vol
@@ -8257,6 +8282,14 @@ local function on_render()
         local pink = type(color) == "function" and color(255, 0, 255, 255) or type(color) == "table" and color(255, 0, 255, 255) or nil
         local accent = v51 and v51.get and v51.get("theme_accent") or pink
 
+        if (is_dragging or is_resizing) and render.rect_filled then
+            local dim_clr = type(color) == "function" and color(0, 0, 0, 180) or type(color) == "table" and color(0, 0, 0, 180) or nil
+            if dim_clr then
+                local screen = render.screen_size and render.screen_size() or vector(1920, 1080)
+                render.rect_filled(type(vector) == "function" and vector(0, 0) or type(vector) == "table" and vector(0, 0), screen, dim_clr, 0)
+            end
+        end
+
         if current_texture and gc_pos and gc_size and clr then
             if render.texture then
                 render.texture(current_texture, gc_pos, gc_size, clr)
@@ -8265,11 +8298,7 @@ local function on_render()
             end
             
             if (is_dragging or is_resizing) and render.rect then
-                render.rect(gc_pos - vector(1,1), gc_pos + gc_size + vector(1,1), accent, 0, 6)
-                local white_glow = type(color) == "function" and color(255, 255, 255, 200) or type(color) == "table" and color(255, 255, 255, 200) or nil
-                if white_glow then
-                    render.rect(gc_pos, gc_pos + gc_size, white_glow, 0, 2)
-                end
+                render.rect(gc_pos, gc_pos + gc_size, accent, 0, 3)
             end
             
             -- Media Player UI
