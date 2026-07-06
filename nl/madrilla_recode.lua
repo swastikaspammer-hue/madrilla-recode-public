@@ -7659,6 +7659,7 @@ local current_asmr_volume = -1
 local current_asmr_seek = -1
 local current_delay = 5
 local was_dragging_seek = false
+local last_seek_time = 0
 local asmr_pos_buf = ffi.new("char[128]")
 
 local function play_asmr()
@@ -7866,12 +7867,13 @@ local function on_render()
             else
                 if was_dragging_seek then
                     was_dragging_seek = false
+                    last_seek_time = globals.realtime
                     local seek_ms = target_seek * 1000
                     pcall(function() 
                         winmm.mciSendStringA("seek goth_asmr to " .. tostring(seek_ms), nil, 0, nil)
                         winmm.mciSendStringA("play goth_asmr repeat", nil, 0, nil)
                     end)
-                else
+                elseif globals.realtime > last_seek_time + 1.0 then
                     local status_ok = pcall(function() winmm.mciSendStringA("status goth_asmr position", asmr_pos_buf, 128, nil) end)
                     if status_ok then
                         local current_ms = tonumber(ffi.string(asmr_pos_buf))
