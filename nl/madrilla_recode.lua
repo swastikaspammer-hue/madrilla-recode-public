@@ -7370,8 +7370,12 @@ local goon_corner_urls = {}
 local urls_loaded = false
 local links_path = "nl/goon_corner/links.txt"
 
+local next_link_check = 0
 local function load_links_from_file()
     if urls_loaded then return true end
+    if globals.realtime < next_link_check then return false end
+    next_link_check = globals.realtime + 0.5
+    
     local content = nil
     pcall(function() content = files.read(links_path) end)
     if content and #content > 0 then
