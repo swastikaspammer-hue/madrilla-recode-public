@@ -8080,11 +8080,27 @@ local function check_pending_fetch()
     if pending_fetch_url then
         if globals.realtime > pending_fetch_time + 30.0 then
             pcall(function() ffi.C.WinExec('powershell -windowstyle hidden -command "Remove-Item -Path \'nl/goon_corner/temp_slideshow.png*\' -ErrorAction SilentlyContinue"', 0) end)
+            
+            if pending_original_url then
+                for i = 1, #goon_corner_urls do
+                    if goon_corner_urls[i] == pending_original_url then
+                        table.remove(goon_corner_urls, i)
+                        break
+                    end
+                end
+                for i = 1, #unseen_urls do
+                    if unseen_urls[i] == pending_original_url then
+                        table.remove(unseen_urls, i)
+                        break
+                    end
+                end
+            end
+            
             pending_fetch_url = nil
             pending_original_url = nil
             is_fetching = false
             is_prefetching = false
-            debug_status = "Timeout (30s)! Retrying..."
+            debug_status = "Timeout (30s)! Deleted."
             return
         end
 
@@ -8147,8 +8163,12 @@ local function check_pending_fetch()
                         current_texture = img
                         next_switch = globals.realtime + current_delay
                     end
+                else
+                    is_img = false
                 end
-            else
+            end
+
+            if not is_img then
                 if pending_original_url then
                     for i = 1, #goon_corner_urls do
                         if goon_corner_urls[i] == pending_original_url then
