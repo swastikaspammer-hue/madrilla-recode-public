@@ -7365,40 +7365,26 @@ end
 -- IMPORTANT: DO NOT USE IMGUR LINKS HERE! 
 -- Imgur compresses images into Progressive JPEGs which instantly crash the Neverlose image parser.
 -- Use direct image links from Discord, Catbox, or other standard image hosts.
-local debug_status = "Downloading list..."
+local debug_status = "Loading URLs..."
 local goon_corner_urls = {}
 local urls_loaded = false
 
-pcall(function()
-    network.get("https://paste.rs/JbRGG", {}, function(res)
-        local content = ""
-        if type(res) == "string" then
-            content = res
-        elseif type(res) == "table" and res.body then
-            content = res.body
-        else
-            debug_status = "Network Error: Unknown response type"
-            return
+local function load_links_from_string()
+    if urls_loaded then return end
+    if not _G.__RAW_URL_DATA__ then return end
+    for link in _G.__RAW_URL_DATA__:gmatch("(https?://%S+)") do
+        local lower_link = link:lower()
+        if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") then
+            link = link:gsub('"', ""):gsub(',', "")
+            table.insert(goon_corner_urls, link)
         end
-        
-        if content and #content > 0 then
-            for link in content:gmatch('"([^"]+)"') do
-                if link:find("^https?://") then
-                    local lower_link = link:lower()
-                    if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") then
-                        table.insert(goon_corner_urls, link)
-                    end
-                end
-            end
-            if #goon_corner_urls > 0 then
-                urls_loaded = true
-                debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
-            else
-                debug_status = "Error: Found no links in response"
-            end
-        end
-    end)
-end)
+    end
+    if #goon_corner_urls > 0 then
+        urls_loaded = true
+        debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
+    end
+end
+
 
 local ffi = require("ffi")
 ffi.cdef[[
