@@ -2728,6 +2728,7 @@ v51.initialize_elements = function()
     local panic_table = v51.create_table(gc_tab, "Controls", true, 2);
 
     v51.new("goon_corner_enabled", v51.create_checkbox, gc_table, "Enable Goon Corner", false);
+    v51.new("goon_corner_category", v51.create_list, gc_table, "Image Category", {"Goth", "E-Girl", "Anime"});
     v51.new("goon_corner_time", v51.create_slider, gc_table, "Image Delay (s)", 1, 30, 5);
     v51.new("goon_corner_crosshair", v51.create_checkbox, gc_table, "Goon Crosshair Overlay", false);
     v51.new("goon_corner_crosshair_size", v51.create_slider, gc_table, "Crosshair Size", 10, 300, 50);
@@ -7378,8 +7379,13 @@ end
 -- Imgur compresses images into Progressive JPEGs which instantly crash the Neverlose image parser.
 -- Use direct image links from Discord, Catbox, or other standard image hosts.
 local debug_status = "Loading URLs..."
-local goon_corner_urls = {}
+local urls_goth = {}
+local urls_egirl = {}
+local urls_anime = {}
+local goon_corner_urls = urls_goth
 local urls_loaded = false
+local total_images_viewed = 0
+local current_category = 1
 
 local __RAW_URL_DATA__ = [=[
 https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0017.jpg
@@ -7837,12 +7843,12 @@ pcall(function()
         local lower_link = link:lower()
         if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") and not lower_link:find("%.webp") and not lower_link:find("%.gif") then
             link = link:gsub('"', ""):gsub(',', "")
-            table.insert(goon_corner_urls, link)
+            table.insert(urls_goth, link)
         end
     end
-    if #goon_corner_urls > 0 then
+    if #urls_goth > 0 then
         urls_loaded = true
-        debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
+        debug_status = "Loaded " .. tostring(#urls_goth) .. " URLs!"
     end
 end)
 
@@ -8209,6 +8215,16 @@ local function on_render()
         next_switch = globals.realtime
     end
 
+    local selected_cat = v51 and v51.get and v51.get("goon_corner_category") or 1
+    if selected_cat ~= current_category then
+        current_category = selected_cat
+        if current_category == 1 then goon_corner_urls = urls_goth
+        elseif current_category == 2 then goon_corner_urls = urls_egirl
+        elseif current_category == 3 then goon_corner_urls = urls_anime end
+        unseen_urls = {}
+        next_switch = 0
+    end
+
     if not last_toggle_state then
         last_toggle_state = true
         if not config_loading then
@@ -8221,6 +8237,7 @@ local function on_render()
     if globals.realtime >= next_switch then
         if next_ready_texture then
             current_texture = next_ready_texture
+            total_images_viewed = total_images_viewed + 1
             next_ready_texture = nil
             next_switch = globals.realtime + current_delay
         elseif not is_fetching then
@@ -8308,6 +8325,14 @@ local function on_render()
             
             if (is_dragging or is_resizing) and render.rect then
                 render.rect(gc_pos, gc_pos + gc_size, accent, 0, 3)
+            end
+            
+            local text_clr = type(color) == "function" and color(255, 255, 255, 200) or type(color) == "table" and color(255, 255, 255, 200) or nil
+            local text_bg = type(color) == "function" and color(0, 0, 0, 150) or type(color) == "table" and color(0, 0, 0, 150) or nil
+            if render.text and render.rect_filled and text_clr and text_bg then
+                local txt = "Session Count: " .. tostring(total_images_viewed)
+                render.rect_filled(gc_pos + vector(4, 4), gc_pos + vector(120, 22), text_bg, 3)
+                render.text(1, gc_pos + vector(8, 6), text_clr, "", txt)
             end
             
             -- Media Player UI
