@@ -2804,7 +2804,8 @@ v51.initialize_elements = function()
             [2] = "Anti aim", 
             [3] = "Visuals", 
             [4] = "Indicators", 
-            [5] = "Misc"
+            [5] = "Misc",
+            [6] = "18+"
         }, true, true);
         v51.new("save_config", v51.create_button, v761, "Save config", function()
             -- upvalues: v51 (ref), v31 (ref), v36 (ref), v311 (ref), v154 (ref)
