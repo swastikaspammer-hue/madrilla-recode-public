@@ -7988,7 +7988,7 @@ https://cdn.discordapp.com/attachments/791177690026606593/1491189290460250112/x6
 pcall(function()
     for link in __RAW_URL_DATA__:gmatch("(https?://%S+)") do
         local lower_link = link:lower()
-        if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") then
+        if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") and not lower_link:find("%.webp") and not lower_link:find("%.gif") then
             link = link:gsub('"', ""):gsub(',', "")
             table.insert(goon_corner_urls, link)
         end
