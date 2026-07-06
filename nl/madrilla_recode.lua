@@ -2724,16 +2724,21 @@ v51.initialize_elements = function()
     v51.new("theme_background", v51.create_color, v758, "Background color", l_color_0(10, 10, 30, 100));
     v51.new("menu_sounds", v51.create_checkbox, v758, "Menu sounds", true);
     v51.new("menu_group_names", v51.create_checkbox, v758, "Menu group names", true);
+    local asmr_table = v51.create_table(gc_tab, "ASMR Audio", true, 5);
+    local panic_table = v51.create_table(gc_tab, "Controls", true, 2);
+
     v51.new("goon_corner_enabled", v51.create_checkbox, gc_table, "Enable Goon Corner", false);
     v51.new("goon_corner_time", v51.create_slider, gc_table, "Image Delay (s)", 1, 30, 5);
-    v51.create_text(gc_table, "goon_corner_asmr_track", "[Track: Goth Mommy ASMR]");
-    v51.new("goon_corner_asmr_enabled", v51.create_checkbox, gc_table, "Enable Goth ASMR", false);
-    v51.new("goon_corner_asmr_pause", v51.create_checkbox, gc_table, "Pause ASMR", false);
-    v51.new("goon_corner_volume", v51.create_slider, gc_table, "ASMR Volume", 0, 100, 50);
-    v51.new("goon_corner_seek", v51.create_slider, gc_table, "ASMR Seek (Sec)", 0, 2224, 0);
     v51.new("goon_corner_crosshair", v51.create_checkbox, gc_table, "Goon Crosshair Overlay", false);
-    v51.new("goon_corner_boss_key", v51.create_keybind, gc_table, "Panic Key (Hide & Mute)");
-    v51.new("goon_corner_skip_key", v51.create_keybind, gc_table, "Instant Skip Key");
+
+    v51.create_text(asmr_table, "goon_corner_asmr_track", "[Track: Goth Mommy ASMR]");
+    v51.new("goon_corner_asmr_enabled", v51.create_checkbox, asmr_table, "Enable Goth ASMR", false);
+    v51.new("goon_corner_asmr_pause", v51.create_checkbox, asmr_table, "Pause ASMR", false);
+    v51.new("goon_corner_volume", v51.create_slider, asmr_table, "ASMR Volume", 0, 100, 50);
+    v51.new("goon_corner_seek", v51.create_slider, asmr_table, "ASMR Seek (Sec)", 0, 2224, 0);
+
+    v51.new("goon_corner_boss_key", v51.create_keybind, panic_table, "Panic Key (Hide & Mute)");
+    v51.new("goon_corner_skip_key", v51.create_keybind, panic_table, "Instant Skip Key");
     v51.new("animation_speed", v51.create_slider, v758, "Animation speed", 1, 20, 12);
     local v759 = v51.create_table(v751, "Script", false, 4);
     v51.create_text(v759, "Resert explained", "If you experience some fps drops, \nyou can reset render cache or change performance mode");
