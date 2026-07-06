@@ -8265,7 +8265,11 @@ local function on_render()
             end
             
             if (is_dragging or is_resizing) and render.rect then
-                render.rect(gc_pos, gc_pos + gc_size, accent, 0, 3)
+                render.rect(gc_pos - vector(1,1), gc_pos + gc_size + vector(1,1), accent, 0, 6)
+                local white_glow = type(color) == "function" and color(255, 255, 255, 200) or type(color) == "table" and color(255, 255, 255, 200) or nil
+                if white_glow then
+                    render.rect(gc_pos, gc_pos + gc_size, white_glow, 0, 2)
+                end
             end
             
             -- Media Player UI
