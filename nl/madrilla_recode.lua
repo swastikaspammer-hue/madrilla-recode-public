@@ -8202,10 +8202,15 @@ local function on_render()
             elseif is_resizing then
                 local nx = mouse_pos.x - gc_pos.x
                 local ny = mouse_pos.y - gc_pos.y
-                if type(nx) == "number" and nx == nx then gc_size.x = nx end
-                if type(ny) == "number" and ny == ny then gc_size.y = ny end
-                if gc_size.x < 50 then gc_size.x = 50 end
-                if gc_size.y < 50 then gc_size.y = 50 end
+                local size = math.max(nx, ny)
+                if type(size) == "number" and size == size then 
+                    gc_size.x = size
+                    gc_size.y = size
+                end
+                if gc_size.x < 50 then 
+                    gc_size.x = 50
+                    gc_size.y = 50
+                end
             end
 
             -- Anti-crash bounds clamping
