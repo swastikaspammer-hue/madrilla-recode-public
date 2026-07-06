@@ -8187,7 +8187,8 @@ local function on_render()
         stop_asmr()
     end
 
-    if not is_enabled then 
+    local is_crosshair_active = v51 and v51.get and v51.get("goon_corner_crosshair")
+    if not is_enabled and not is_crosshair_active then 
 
         unseen_urls = {}
         current_texture = nil
@@ -8229,11 +8230,12 @@ local function on_render()
         local mouse_pos = ui.get_mouse_position and ui.get_mouse_position() or vector(0, 0)
         local is_down = common.is_button_down and common.is_button_down(1)
 
-        if menu_open and gc_pos and gc_size then
-            local resize_rect_pos_x = gc_pos.x + gc_size.x - 15
-            local resize_rect_pos_y = gc_pos.y + gc_size.y - 15
+        if is_enabled then
+            if menu_open and gc_pos and gc_size then
+                local resize_rect_pos_x = gc_pos.x + gc_size.x - 15
+                local resize_rect_pos_y = gc_pos.y + gc_size.y - 15
 
-            if is_down then
+                if is_down then
                 if not is_dragging and not is_resizing then
                     if mouse_pos.x >= resize_rect_pos_x and mouse_pos.y >= resize_rect_pos_y and mouse_pos.x <= gc_pos.x + gc_size.x and mouse_pos.y <= gc_pos.y + gc_size.y then
                         is_resizing = true
@@ -8407,6 +8409,8 @@ local function on_render()
         if menu_open and render.rect_filled and gc_pos and gc_size then
             local resize_rect_pos = gc_pos + gc_size - vector(15, 15)
             render.rect_filled(resize_rect_pos, resize_rect_pos + vector(15, 15), accent, 0)
+        end
+
         end
 
         local is_crosshair = v51 and v51.get and v51.get("goon_corner_crosshair")
