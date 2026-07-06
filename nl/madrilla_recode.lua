@@ -7365,6 +7365,7 @@ end
 -- IMPORTANT: DO NOT USE IMGUR LINKS HERE! 
 -- Imgur compresses images into Progressive JPEGs which instantly crash the Neverlose image parser.
 -- Use direct image links from Discord, Catbox, or other standard image hosts.
+local debug_status = "Idle"
 local goon_corner_urls = {}
 pcall(function()
     network.get("https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/refs/heads/main/nl/links.txt", {}, function(res)
@@ -7407,7 +7408,6 @@ local asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t
 local asmr_path = "nl\\goon_corner\\asmr_mommy.mp3"
 local asmr_retry_time = 0
 local audio_playing = false
-local debug_status = "Idle"
 local last_toggle_state = false
 local config_loading = false
 local is_fetching = false
