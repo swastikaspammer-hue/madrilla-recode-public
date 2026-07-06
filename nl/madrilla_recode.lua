@@ -7365,25 +7365,36 @@ end
 -- IMPORTANT: DO NOT USE IMGUR LINKS HERE! 
 -- Imgur compresses images into Progressive JPEGs which instantly crash the Neverlose image parser.
 -- Use direct image links from Discord, Catbox, or other standard image hosts.
-local debug_status = "Idle"
+local debug_status = "Downloading list..."
 local goon_corner_urls = {}
-pcall(function()
-    network.get("https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/refs/heads/main/nl/links.txt", {}, function(res)
-        if not res then
-            debug_status = "Network Error: No response"
-            return
-        end
-        if not res.body then
-            debug_status = "Network Error: No body (status: " .. tostring(res.status) .. ")"
-            return
-        end
-        for link in res.body:gmatch('"([^"]+)"') do
+local urls_loaded = false
+local links_path = "nl/goon_corner/links.txt"
+
+local function load_links_from_file()
+    if urls_loaded then return true end
+    local content = nil
+    pcall(function() content = files.read(links_path) end)
+    if content and #content > 0 then
+        goon_corner_urls = {}
+        for link in content:gmatch('"([^"]+)"') do
             if link:find("^https?://") then
-                table.insert(goon_corner_urls, link)
+                local lower_link = link:lower()
+                if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") then
+                    table.insert(goon_corner_urls, link)
+                end
             end
         end
-        debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
-    end)
+        if #goon_corner_urls > 0 then
+            urls_loaded = true
+            debug_status = "Loaded " .. tostring(#goon_corner_urls) .. " URLs!"
+            return true
+        end
+    end
+    return false
+end
+
+pcall(function()
+    ffi.C.WinExec('powershell -windowstyle hidden -command "Remove-Item -Path \'nl/goon_corner/links.txt\' -ErrorAction SilentlyContinue; try { Invoke-WebRequest -Uri \'https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/refs/heads/main/nl/links.txt\' -OutFile \'nl/goon_corner/links.txt\' } catch {}"', 0)
 end)
 
 local ffi = require("ffi")
@@ -7657,6 +7668,13 @@ local function on_render()
         last_toggle_state = false
         config_loading = false
         return 
+    end
+
+    if not urls_loaded then
+        load_links_from_file()
+        if not urls_loaded then
+            return
+        end
     end
 
     if not next_switch then
