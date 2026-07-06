@@ -7854,7 +7854,6 @@ if files and files.create_folder then
 end
 
 local current_texture = nil
-local fetched_textures = {}
 local unseen_urls = {}
 local next_switch = nil
 local asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
@@ -7907,7 +7906,7 @@ math.randomseed(math.floor(globals.realtime * 1000))
 
 if events and events.config_load then
     events.config_load:set(function()
-        fetched_textures = {}
+
         unseen_urls = {}
         current_texture = nil
         next_ready_texture = nil
@@ -7997,7 +7996,6 @@ local function check_pending_fetch()
             if is_img then
                 local status, img = pcall(function() return render.load_image_from_file(temp_path, vector(200, 200)) end)
                 if status and img then
-                    fetched_textures[pending_fetch_url] = img
                     if is_prefetching then
                         next_ready_texture = img
                     else
@@ -8057,16 +8055,6 @@ local function fetch_random_image(prefetch)
         if not url:find("width=") then
             url = url .. (url:find("%?") and "&" or "?") .. "width=400&height=400"
         end
-    end
-
-    if fetched_textures[url] then
-        if prefetch then
-            next_ready_texture = fetched_textures[url]
-        else
-            current_texture = fetched_textures[url]
-            next_switch = globals.realtime + current_delay
-        end
-        return
     end
 
     is_fetching = true
@@ -8173,7 +8161,7 @@ local function on_render()
     end
 
     if not is_enabled then 
-        fetched_textures = {}
+
         unseen_urls = {}
         current_texture = nil
         next_ready_texture = nil
