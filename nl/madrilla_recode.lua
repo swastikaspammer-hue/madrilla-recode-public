@@ -7857,32 +7857,27 @@ local function on_render()
                 current_asmr_volume = target_vol
                 pcall(function() winmm.mciSendStringA("setaudio goth_asmr volume to " .. tostring(target_vol * 10), nil, 0, nil) end)
             end
-            local is_dragging_seek = v51 and v51.elements_ptrs and (v51.use_element == v51.elements_ptrs["goon_corner_seek"])
+            local diff = target_seek - current_asmr_seek
+            if diff < 0 then diff = -diff end
+            local mouse_down = common.is_button_down(1)
             
-            if is_dragging_seek then
-                was_dragging_seek = true
-                if target_seek ~= current_asmr_seek then
-                    current_asmr_seek = target_seek
-                end
-            else
-                if was_dragging_seek then
-                    was_dragging_seek = false
+            if diff > 1.5 or (was_dragging_seek and mouse_down) then
+                was_dragging_seek = mouse_down
+                current_asmr_seek = target_seek
+                if not mouse_down then
                     last_seek_time = globals.realtime
                     local seek_ms = math.floor(target_seek * 1000)
-                    pcall(function() 
-                        winmm.mciSendStringA("seek goth_asmr to " .. tostring(seek_ms), nil, 0, nil)
-                        winmm.mciSendStringA("play goth_asmr repeat", nil, 0, nil)
-                    end)
-                elseif globals.realtime > last_seek_time + 1.0 then
-                    local status_ok = pcall(function() winmm.mciSendStringA("status goth_asmr position", asmr_pos_buf, 128, nil) end)
-                    if status_ok then
-                        local current_ms = tonumber(ffi.string(asmr_pos_buf))
-                        if current_ms then
-                            local sec = math.floor(current_ms / 1000)
-                            if v51.elements_ptrs["goon_corner_seek"] and sec ~= current_asmr_seek then
-                                v51.elements_ptrs["goon_corner_seek"].value = sec
-                                current_asmr_seek = sec
-                            end
+                    pcall(function() winmm.mciSendStringA("play goth_asmr from " .. tostring(seek_ms) .. " repeat", nil, 0, nil) end)
+                end
+            elseif globals.realtime > last_seek_time + 1.0 then
+                local status_ok = pcall(function() winmm.mciSendStringA("status goth_asmr position", asmr_pos_buf, 128, nil) end)
+                if status_ok then
+                    local current_ms = tonumber(ffi.string(asmr_pos_buf))
+                    if current_ms then
+                        local sec = math.floor(current_ms / 1000)
+                        if v51.elements_ptrs["goon_corner_seek"] and sec ~= current_asmr_seek then
+                            v51.elements_ptrs["goon_corner_seek"].value = sec
+                            current_asmr_seek = sec
                         end
                     end
                 end
