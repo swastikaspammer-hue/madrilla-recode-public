@@ -8072,8 +8072,7 @@ local function fetch_random_image(prefetch)
     debug_status = "Starting PowerShell..."
     
     local temp_path = "nl/goon_corner/temp_slideshow.png"
-
-    local ps_cmd = string.format('powershell -windowstyle hidden -command "Remove-Item -Path \'%s*\' -ErrorAction SilentlyContinue; Remove-Item -Path \'nl/goon_corner/error.txt\' -ErrorAction SilentlyContinue; try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 -Uri \'%s\' -OutFile \'%s.tmp\'; Move-Item -Force \'%s.tmp\' \'%s\' } catch { Set-Content -Path \'nl/goon_corner/error.txt\' -Value $_.Exception.Message }"', temp_path, url, temp_path, temp_path, temp_path)
+    local ps_cmd = string.format('powershell -windowstyle hidden -command "Remove-Item -Path \'%s*\' -ErrorAction SilentlyContinue; Remove-Item -Path \'nl/goon_corner/error.txt\' -ErrorAction SilentlyContinue; try { $ProgressPreference = \'SilentlyContinue\'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 -Uri \'%s\' -OutFile \'%s.tmp\'; Move-Item -Force \'%s.tmp\' \'%s\' } catch { Set-Content -Path \'nl/goon_corner/error.txt\' -Value $_.Exception.Message }"', temp_path, url, temp_path, temp_path, temp_path)
     
     -- Execute asynchronously via WinExec (0 = SW_HIDE)
     pcall(function()
