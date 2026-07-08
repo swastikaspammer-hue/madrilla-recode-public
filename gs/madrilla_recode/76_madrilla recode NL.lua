@@ -2456,11 +2456,11 @@ do
             local v697 = v696._position + v696._size;
             v50.render_background(v696._position, v697, v696._fade, 18);
             v29.push_clip_rect(v696._position, v697, true);
-            pcall(v29.texture, v51.icons.cloud.img, l_vector_0(v696._position.x + 20, v696._position.y + v696._size.y - 15 - v51.icons.cloud.size.y), v51.icons.cloud.size, l_color_0(255, 180 * v696._fade));
+            pcall(v29.texture, v51.icons.cloud.img, l_vector_0(v696._position.x + 15, v696._position.y + 14), v51.icons.cloud.size, l_color_0(255, 180 * v696._fade));
             local v698 = v111.is_anything_moving() and 0 or 1;
             local v699 = {
-                [1] = l_vector_0(v696._position.x + 20, v696._position.y + 20), 
-                [2] = l_vector_0(v696._position.x + 370, v696._position.y + 20)
+                [1] = l_vector_0(v696._position.x + 20, v696._position.y + 60), 
+                [2] = l_vector_0(v696._position.x + 370, v696._position.y + 60)
             };
             local v700 = #v51.tabs_list;
             local start_x = v696._position.x + v696._size.x / 2 - (v51.centered_tabs * 60 - 20) / 2;
