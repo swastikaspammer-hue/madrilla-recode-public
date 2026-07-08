@@ -459,7 +459,7 @@ visuals = {
     end,
 
     OnPlayerChat = function(event)
-        return -- customChat removed
+        do return end -- customChat removed
         
         local userid = event.userid
         local ent = 0

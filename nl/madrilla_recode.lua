@@ -1585,17 +1585,20 @@ v51.references = {
     min_damage = v28.find("Aimbot", "Ragebot", "Selection", "Min. Damage")
 };
 v51.local_states = {
-    [1] = "Global", 
-    [2] = "Stand", 
-    [3] = "Slow walk", 
-    [4] = "Move", 
-    [5] = "Air", 
-    [6] = "Use"
+    [1] = "Global",
+    [2] = "Stand",
+    [3] = "Run",
+    [4] = "Slow walk",
+    [5] = "Crouch",
+    [6] = "Sneak",
+    [7] = "Air",
+    [8] = "Air crouch",
+    [9] = "Legit AA",
+    [10] = "Freestand",
+    [11] = "Use"
 };
 v51.sub_states = {
-    [1] = "Regular", 
-    [2] = "Crouch", 
-    [3] = "Fake lag"
+    [1] = "Regular"
 };
 v51.weapons = {
     [1] = "Scout", 
@@ -2902,6 +2905,14 @@ v51.initialize_elements = function()
     end, v51.icons.reset);
     v51.new("invert_freestand", v51.create_checkbox, v759, "Invert desync freestand");
     v51.new("limit_freestand", v51.create_checkbox, v759, "Limit freestand calculations");
+    v51.new("warmup_yaw", v51.create_list, v759, "Warmup yaw", {
+        [1] = "Spin", 
+        [2] = "Distortion", 
+        [3] = "L/R"
+    });
+    v51.new("warmup_speed", v51.create_slider, v759, "Warmup speed", 1, 128, 32);
+    v51.new("warmup_left_yaw", v51.create_slider, v759, "Warmup left offset", -180, 180, -90);
+    v51.new("warmup_right_yaw", v51.create_slider, v759, "Warmup right offset", -180, 180, 90);
     v51.new("edge_yaw", v51.create_keybind, v759, "Edge yaw");
     v51.new("defensive_snap", v51.create_keybind, v759, "Defensive snap");
     v51.new("defensive_pitch", v51.create_slider, v759, "Delay pitch", 1, 20, 8);
@@ -2921,7 +2932,7 @@ v51.initialize_elements = function()
         local v772 = v771 == "global";
         v51.new(v36("enable_state_%s", v771), v51.create_checkbox, v757, v36("Enable %s", v771), v772, false);
         v51.new(v36("select_sub_state_%s", v771), v51.create_list, v757, v36("Select %s sub state", v771), v51.sub_states);
-        for v773 = 1, 3 do
+        for v773 = 1, #v51.sub_states do
             local v774 = v37(v51.sub_states[v773]);
             local v775 = v774 == "regular";
             local v776 = v36("%s_%s", v771, v774);
@@ -2929,6 +2940,20 @@ v51.initialize_elements = function()
             local v777 = v51.create_table(v752, v36("%s on %s", v774, v771), true, 9);
             v51.new(v36("yaw_left_%s", v776), v51.create_slider, v777, "Yaw left", -180, 180, 0);
             v51.new(v36("yaw_right_%s", v776), v51.create_slider, v777, "Yaw right", -180, 180, 0);
+            v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false);
+            v51.new(v36("delay_method_%s", v776), v51.create_list, v777, "Delay method", {
+                [1] = "Default", 
+                [2] = "Random",
+                [3] = "Custom"
+            });
+            v51.new(v36("delay_default_%s", v776), v51.create_slider, v777, "Delay ticks", 1, 64, 14);
+            v51.new(v36("delay_random_min_%s", v776), v51.create_slider, v777, "Min delay", 1, 64, 5);
+            v51.new(v36("delay_random_max_%s", v776), v51.create_slider, v777, "Max delay", 1, 64, 15);
+            v51.new(v36("delay_custom_sliders_%s", v776), v51.create_slider, v777, "Custom Sliders", 2, 6, 2);
+            for d_idx = 1, 6 do
+                v51.new(v36("delay_%d_%s", d_idx, v776), v51.create_slider, v777, "Delay "..d_idx, 1, 64, 14);
+            end
+
             v51.new(v36("yaw_modifier_%s", v776), v51.create_list, v777, "Yaw modifier", {
                 [1] = "Disabled", 
                 [2] = "Center", 
@@ -2939,10 +2964,29 @@ v51.initialize_elements = function()
                 [7] = "5-Way", 
                 [8] = "Devided delta"
             });
+            v51.new(v36("modifier_mode_%s", v776), v51.create_list, v777, "Modifier method", {
+                [1] = "Default",
+                [2] = "Custom"
+            });
             v51.new(v36("yaw_modifier_delta_%s", v776), v51.create_slider, v777, "Modifier degree", -180, 180, 0);
             v51.new(v36("yaw_modifier_mode_%s", v776), v51.create_slider, v777, "Modifier mode", 3, 6, 3);
+            v51.new(v36("modifier_custom_sliders_%s", v776), v51.create_slider, v777, "Mod Sliders", 2, 6, 2);
+            for m_idx = 1, 6 do
+                v51.new(v36("modifier_%d_%s", m_idx, v776), v51.create_slider, v777, "Modifier "..m_idx, -180, 180, 0);
+            end
+
+            v51.new(v36("limit_mode_%s", v776), v51.create_list, v777, "Limit mode", {
+                [1] = "Static",
+                [2] = "Random",
+                [3] = "From/To",
+                [4] = "Speed-based Switch"
+            });
             v51.new(v36("left_limit_%s", v776), v51.create_slider, v777, "Left limit", 0, 59, 30);
             v51.new(v36("right_limit_%s", v776), v51.create_slider, v777, "Right limit", 0, 59, 30);
+            v51.new(v36("minimum_limit_%s", v776), v51.create_slider, v777, "Min limit", 0, 59, 30);
+            v51.new(v36("maximum_limit_%s", v776), v51.create_slider, v777, "Max limit", 0, 59, 59);
+            v51.new(v36("from_limit_%s", v776), v51.create_slider, v777, "From limit", 0, 59, 30);
+            v51.new(v36("to_limit_%s", v776), v51.create_slider, v777, "To limit", 0, 59, 59);
             v51.new(v36("fake_options_%s", v776), v51.create_list, v777, "Desync options", {
                 [1] = "Avoid overlap", 
                 [2] = "Jitter", 
@@ -3241,6 +3285,11 @@ v51.organize_elements = function()
                 v51.visible("resert_anti_bruteforce", v798 and v51.get("enable_anti_aim_misc")[2]);
                 v51.visible("invert_freestand", v798 and v51.get("enable_anti_aim_misc")[7]);
                 v51.visible("limit_freestand", v798 and v51.get("enable_anti_aim_misc")[7]);
+                local is_warmup = v798 and v51.get("enable_anti_aim_misc")[6]
+                v51.visible("warmup_yaw", is_warmup);
+                v51.visible("warmup_speed", is_warmup);
+                v51.visible("warmup_left_yaw", is_warmup and v51.get("warmup_yaw") == "L/R");
+                v51.visible("warmup_right_yaw", is_warmup and v51.get("warmup_yaw") == "L/R");
                 v51.visible("edge_yaw", v798);
                 v51.visible("defensive_snap", v798);
                 v51.visible("defensive_pitch", v798 and v51.has_bind("Defensive snap"));
@@ -3261,7 +3310,7 @@ v51.organize_elements = function()
                     local v804 = v803 and v51.get(v36("enable_state_%s", v802));
                     v51.visible(v36("select_sub_state_%s", v802), v804);
                     local v805 = v37(v51.get(v36("select_sub_state_%s", v802)));
-                    for v806 = 1, 3 do
+                    for v806 = 1, #v51.sub_states do
                         local v807 = v37(v51.sub_states[v806]);
                         local v808 = v36("%s_%s", v802, v807);
                         local v809 = v805 == v807 and v804;
@@ -3271,12 +3320,42 @@ v51.organize_elements = function()
                         local v810 = v809 and v51.get(v36("enable_%s", v808));
                         v51.visible(v36("yaw_left_%s", v808), v810);
                         v51.visible(v36("yaw_right_%s", v808), v810);
+                        
+                        v51.visible(v36("delay_%s", v808), v810);
+                        local is_delay = v51.get(v36("delay_%s", v808))
+                        v51.visible(v36("delay_method_%s", v808), v810 and is_delay);
+                        local d_method = v51.get(v36("delay_method_%s", v808))
+                        v51.visible(v36("delay_default_%s", v808), v810 and is_delay and d_method == "Default");
+                        v51.visible(v36("delay_random_min_%s", v808), v810 and is_delay and d_method == "Random");
+                        v51.visible(v36("delay_random_max_%s", v808), v810 and is_delay and d_method == "Random");
+                        v51.visible(v36("delay_custom_sliders_%s", v808), v810 and is_delay and d_method == "Custom");
+                        local d_custom = v51.get(v36("delay_custom_sliders_%s", v808)) or 2
+                        for d_idx = 1, 6 do
+                            v51.visible(v36("delay_%d_%s", d_idx, v808), v810 and is_delay and d_method == "Custom" and d_idx <= d_custom);
+                        end
+
                         v51.visible(v36("yaw_modifier_%s", v808), v810);
                         local v811 = v51.get(v36("yaw_modifier_%s", v808));
-                        v51.visible(v36("yaw_modifier_delta_%s", v808), v810 and v811 ~= "Disabled");
-                        v51.visible(v36("yaw_modifier_mode_%s", v808), v810 and v811 == "Devided delta");
-                        v51.visible(v36("left_limit_%s", v808), v810);
-                        v51.visible(v36("right_limit_%s", v808), v810);
+                        v51.visible(v36("modifier_mode_%s", v808), v810 and v811 ~= "Disabled");
+                        local m_mode = v51.get(v36("modifier_mode_%s", v808));
+                        
+                        v51.visible(v36("yaw_modifier_delta_%s", v808), v810 and v811 ~= "Disabled" and m_mode == "Default");
+                        v51.visible(v36("yaw_modifier_mode_%s", v808), v810 and v811 == "Devided delta" and m_mode == "Default");
+                        v51.visible(v36("modifier_custom_sliders_%s", v808), v810 and v811 ~= "Disabled" and m_mode == "Custom");
+                        local m_custom = v51.get(v36("modifier_custom_sliders_%s", v808)) or 2
+                        for m_idx = 1, 6 do
+                            v51.visible(v36("modifier_%d_%s", m_idx, v808), v810 and v811 ~= "Disabled" and m_mode == "Custom" and m_idx <= m_custom);
+                        end
+                        
+                        v51.visible(v36("limit_mode_%s", v808), v810);
+                        local l_mode = v51.get(v36("limit_mode_%s", v808));
+                        v51.visible(v36("left_limit_%s", v808), v810 and l_mode == "Static");
+                        v51.visible(v36("right_limit_%s", v808), v810 and l_mode == "Static");
+                        v51.visible(v36("minimum_limit_%s", v808), v810 and l_mode == "Random");
+                        v51.visible(v36("maximum_limit_%s", v808), v810 and l_mode == "Random");
+                        v51.visible(v36("from_limit_%s", v808), v810 and (l_mode == "From/To" or l_mode == "Speed-based Switch"));
+                        v51.visible(v36("to_limit_%s", v808), v810 and (l_mode == "From/To" or l_mode == "Speed-based Switch"));
+
                         v51.visible(v36("fake_options_%s", v808), v810);
                         v51.visible(v36("freestand_desync_%s", v808), v810);
                     end;
@@ -3990,25 +4069,48 @@ v58.auto_preset = function(_)
     end;
 end;
 v58.get_state = function()
-    -- upvalues: v52 (ref), v30 (ref), v51 (ref)
-    if not v52.local_player() then
+    if not v52.local_player() or not v52.is_alive then
         return "global";
-    else
-        local v904 = v52.local_player().m_vecVelocity:length2d();
-        if v30.is_virtual_key_pressed(69) then
-            return "use";
-        elseif v52.is_in_air then
-            return "air";
-        elseif v904 <= 5 then
-            return "stand";
-        elseif v51.references.slow_walk:get() then
-            return "slow walk";
-        elseif v904 > 5 then
-            return "move";
-        else
-            return "global";
-        end;
     end;
+
+    local lp = v52.local_player();
+    if v30.is_virtual_key_pressed(69) then
+        return "use";
+    end;
+
+    local is_legit_aa = v30.is_virtual_key_pressed(1) or v30.is_virtual_key_pressed(2);
+    if is_legit_aa then
+        return "legit aa";
+    end;
+
+    if v51.references.freestand:get() or v51.references.freestand:get_override() then
+        return "freestand";
+    end;
+
+    local speed = lp.m_vecVelocity:length2d();
+    local duck_amount = lp.m_flDuckAmount or 0;
+    local on_ground = bit.band(lp.m_fFlags, 1) == 1;
+
+    if on_ground then
+        if v51.references.slow_walk:get() then
+            return "slow walk";
+        end;
+        if speed < 5 then
+            if duck_amount > 0 then
+                return "crouch";
+            end;
+            return "stand";
+        end;
+        if duck_amount > 0 then
+            return "sneak";
+        end;
+        return "run";
+    end;
+
+    if duck_amount > 0 then
+        return "air crouch";
+    end;
+    return "air";
 end;
 v58.get_sub_state = function()
     -- upvalues: v52 (ref)
@@ -4058,10 +4160,68 @@ v58.default_builder = function(v910)
         v914 = v36("%s_regular", v912);
     end;
     local v915 = rage.antiaim:inverter();
+    local is_delay = v51.get(v36("delay_%s", v914));
+    if is_delay then
+        local delay_mode = v51.get(v36("delay_method_%s", v914));
+        local delay_ticks = v51.get(v36("delay_default_%s", v914));
+        local min_delay = v51.get(v36("delay_random_min_%s", v914));
+        local max_delay = v51.get(v36("delay_random_max_%s", v914));
+        local div = 1.95;
+
+        if v910.choked_commands == 0 then
+            v58.switch_delay = (v58.switch_delay or 0) + 1;
+            if delay_mode == "Default" then
+                if v58.switch_delay >= delay_ticks / div then
+                    v58.switch_delay = 0;
+                    v58.delayed_side = not v58.delayed_side;
+                end;
+            elseif delay_mode == "Random" then
+                local utils = require("neverlose/utils");
+                if v58.switch_delay >= utils.random_int(min_delay, max_delay) / div then
+                    v58.switch_delay = 0;
+                    v58.delayed_side = not v58.delayed_side;
+                end;
+            elseif delay_mode == "Custom" then
+                v58.delay_slider_idx = v58.delay_slider_idx or 1
+                local d_custom_count = v51.get(v36("delay_custom_sliders_%s", v914)) or 2
+                if v58.delay_slider_idx > d_custom_count then v58.delay_slider_idx = 1 end
+                local custom_val = v51.get(v36("delay_%d_%s", v58.delay_slider_idx, v914)) or 14
+                
+                if v58.switch_delay >= custom_val / div then
+                    v58.switch_delay = 0;
+                    v58.delayed_side = not v58.delayed_side;
+                    v58.delay_slider_idx = v58.delay_slider_idx + 1
+                    if v58.delay_slider_idx > d_custom_count then v58.delay_slider_idx = 1 end
+                end
+            end;
+        end;
+        v915 = v58.delayed_side;
+    end;
+    
     local v916 = 0;
     local v917 = v51.get(v36("yaw_modifier_%s", v914));
     local v918 = v51.get(v36("yaw_modifier_delta_%s", v914));
-    if v917 == "Devided delta" then
+    local m_mode = v51.get(v36("modifier_mode_%s", v914));
+    
+    if m_mode == "Custom" and v917 ~= "Disabled" then
+        if v910.choked_commands == 0 then
+            v58.mod_slider_idx = v58.mod_slider_idx or 1
+            local m_custom_count = v51.get(v36("modifier_custom_sliders_%s", v914)) or 2
+            if v58.mod_slider_idx > m_custom_count then v58.mod_slider_idx = 1 end
+            v918 = v51.get(v36("modifier_%d_%s", v58.mod_slider_idx, v914)) or 0
+            
+            -- Cycle logic for modifier (we can sync it with delay flip or just every tick, but typically we want it to cycle on choke 0)
+            -- Gasolina uses a tick cycle for modifiers too, but for simplicity let's cycle when L/R switches or just continuously
+            -- We'll cycle it continuously on choke 0
+            v58.mod_cycle_tick = (v58.mod_cycle_tick or 0) + 1
+            if v58.mod_cycle_tick >= 10 then -- arbitrary tick delay for mod cycling
+                v58.mod_cycle_tick = 0
+                v58.mod_slider_idx = v58.mod_slider_idx + 1
+            end
+        end
+    end
+
+    if v917 == "Devided delta" and m_mode == "Default" then
         v58.override_settings.yaw_modifier = "Disabled";
         v58.override_settings.yaw_modifier_offset = 0;
         v916 = v58.calculate_jitter(v910, v51.get(v36("yaw_modifier_mode_%s", v914)), v918, "Builder");
@@ -4070,6 +4230,7 @@ v58.default_builder = function(v910)
         v58.override_settings.yaw_modifier_offset = v918;
     end;
     v58.override_settings.yaw_offset = v916 + (v915 and v51.get(v36("yaw_left_%s", v914)) or v51.get(v36("yaw_right_%s", v914)));
+    
     local v919 = {};
     local v920 = v51.get(v36("fake_options_%s", v914));
     if v920[1] then
@@ -4082,15 +4243,73 @@ v58.default_builder = function(v910)
         v919[#v919 + 1] = "Randomize Jitter";
     end;
     v58.override_settings.body_options = v919;
-    v58.override_settings.left_limit = v51.get(v36("left_limit_%s", v914));
-    v58.override_settings.right_limit = v51.get(v36("right_limit_%s", v914));
+    
+    -- Dynamic Desync Limits
+    local limit_mode = v51.get(v36("limit_mode_%s", v914)) or "Static"
+    if limit_mode == "Static" then
+        v58.override_settings.left_limit = v51.get(v36("left_limit_%s", v914));
+        v58.override_settings.right_limit = v51.get(v36("right_limit_%s", v914));
+    elseif limit_mode == "Random" then
+        local l_min = v51.get(v36("minimum_limit_%s", v914)) or 30
+        local l_max = v51.get(v36("maximum_limit_%s", v914)) or 60
+        local utils = require("neverlose/utils")
+        v58.override_settings.left_limit = utils.random_int(l_min, l_max);
+        v58.override_settings.right_limit = utils.random_int(l_min, l_max);
+    elseif limit_mode == "From/To" or limit_mode == "Speed-based Switch" then
+        local l_from = v51.get(v36("from_limit_%s", v914)) or 30
+        local l_to = v51.get(v36("to_limit_%s", v914)) or 60
+        
+        if limit_mode == "Speed-based Switch" then
+            if v910.choked_commands == 0 then
+                v58.speed_switch_ticks = (v58.speed_switch_ticks or 0) + 1
+                local spd = globals.tickinterval
+                if v58.speed_switch_ticks >= 14 then
+                    v58.speed_switch_ticks = 0
+                    v58.speed_switch_side = not v58.speed_switch_side
+                end
+            end
+            local inverter_val = v58.speed_switch_side
+            v58.override_settings.left_limit = inverter_val and l_from or l_to
+            v58.override_settings.right_limit = inverter_val and l_from or l_to
+        else
+            -- From/To based on inverter
+            v58.override_settings.left_limit = v915 and l_from or l_to
+            v58.override_settings.right_limit = v915 and l_from or l_to
+        end
+    end
+    
     v58.override_settings.freestand = v51.get(v36("freestand_desync_%s", v914));
 end;
 v58.decide_settings = function(v921)
     -- upvalues: v51 (ref), v32 (ref), v58 (ref)
     local v922 = v51.get("enable_anti_aim_misc");
     local v923 = v32.get_game_rules();
-    if v922[5] and v58.manual_side ~= 0 or v922[6] and v923.m_bWarmupPeriod then
+    
+    if v922[6] and v923.m_bWarmupPeriod then
+        local warmup_mode = v51.get("warmup_yaw")
+        local w_speed = v51.get("warmup_speed")
+        local tickcount = globals.tickcount
+        local final_yaw = 0
+        
+        if warmup_mode == "Spin" then
+            final_yaw = (tickcount * w_speed) % 360 - 180
+        elseif warmup_mode == "Distortion" then
+            final_yaw = math.sin(tickcount * w_speed / 100.0) * 180
+        elseif warmup_mode == "L/R" then
+            local l_yaw = v51.get("warmup_left_yaw")
+            local r_yaw = v51.get("warmup_right_yaw")
+            local inverter = rage.antiaim:inverter()
+            final_yaw = inverter and l_yaw or r_yaw
+        end
+        
+        v58.override_settings.yaw_modifier = "Disabled"
+        v58.override_settings.yaw_offset = final_yaw
+        v58.override_settings.left_limit = 60
+        v58.override_settings.right_limit = 60
+        return
+    end
+
+    if v922[5] and v58.manual_side ~= 0 then
         return v58.static_settings(true, false);
     elseif v51.get("anti_aim_mode") == "Auto presets" then
         return v58.auto_preset();
