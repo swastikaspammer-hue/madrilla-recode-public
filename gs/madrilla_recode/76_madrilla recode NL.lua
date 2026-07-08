@@ -1368,7 +1368,7 @@ v311.render = function()
         return;
     end;
 end;
-v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(780, 600));
+v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(710, 600));
 v51.icons = {};
 v51.tabs_list = {};
 v51.centered_tabs = 0;
@@ -2459,11 +2459,11 @@ do
             pcall(v29.texture, v51.icons.cloud.img, l_vector_0(v696._position.x + 15, v696._position.y + 14), v51.icons.cloud.size, l_color_0(255, 180 * v696._fade));
             local v698 = v111.is_anything_moving() and 0 or 1;
             local v699 = {
-                [1] = l_vector_0(v696._position.x + 90, v696._position.y + 20), 
-                [2] = l_vector_0(v696._position.x + 440, v696._position.y + 20)
+                [1] = l_vector_0(v696._position.x + 20, v696._position.y + 20), 
+                [2] = l_vector_0(v696._position.x + 370, v696._position.y + 20)
             };
             local v700 = #v51.tabs_list;
-            local v701 = v696._position.y + v696._size.y / 2 - (v51.centered_tabs * 60 - 20) / 2;
+            local start_x = v696._position.x + v696._size.x / 2 - (v51.centered_tabs * 60 - 20) / 2;
             for v702 = 1, v700 do
                 local v703 = v51.tabs_list[v702];
                 local v704 = v36("ui::menu::tab_%s", v703._name);
@@ -2471,12 +2471,12 @@ do
                 local v705 = v51.active_tab == v702;
                 local v706 = nil;
                 if not v703.is_lower then
-                    v706 = l_vector_0(v696._position.x + 15 * v696._fade, v701 + (v702 - 1) * 60);
+                    v706 = l_vector_0(start_x + (v702 - 1) * 60, v696._position.y + v696._size.y - 15 - v703._icon.size.y);
                 else
-                    v706 = l_vector_0(v696._position.x + 15 * v696._fade, v696._position.y + v696._size.y - 15 - v703._icon.size.y);
+                    v706 = l_vector_0(v696._position.x + v696._size.x - 15 - v703._icon.size.x, v696._position.y + v696._size.y - 15 - v703._icon.size.y);
                 end;
                 local v707 = v29.preform_animation(v704, v705 and v698 or 0) * v696._fade;
-                v50.render_accent(v706 + l_vector_0(45, 1), v706 + l_vector_0(49, 1 + v703._icon.size.y * v707), v707, 2);
+                v50.render_accent(v706 + l_vector_0(1, 45), v706 + l_vector_0(1 + v703._icon.size.x * v707, 49), v707, 2);
                 v29.texture(v703._icon.img, v706, v703._icon.size, l_color_0(255):override(v25.max(0.4, v707 - 0.2) * v696._fade));
                 if v111.is_left_pressed and v111.mouse_position:is_in_bounds(v706, v703._icon.size) and v51.active_tab ~= v702 then
                     v51.active_tab = v702;
@@ -2940,7 +2940,17 @@ v51.initialize_elements = function()
             local v777 = v51.create_table(v752, v36("%s on %s", v774, v771), true, 9);
             v51.new(v36("yaw_left_%s", v776), v51.create_slider, v777, "Yaw left", -180, 180, 0);
             v51.new(v36("yaw_right_%s", v776), v51.create_slider, v777, "Yaw right", -180, 180, 0);
-            v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false);
+                        v51.new(v36("fake_options_%s", v776), v51.create_list, v777, "Desync options", {
+                [1] = "Avoid overlap", 
+                [2] = "Jitter", 
+                [3] = "Randomize jitter"
+            }, v39, true);
+            v51.new(v36("freestand_desync_%s", v776), v51.create_list, v777, "Desync freestand", {
+                [1] = "Off", 
+                [2] = "Peek fake", 
+                [3] = "Peek real"
+            });
+v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false);
             v51.new(v36("delay_method_%s", v776), v51.create_list, v777, "Delay method", {
                 [1] = "Default", 
                 [2] = "Random",
@@ -2987,16 +2997,6 @@ v51.initialize_elements = function()
             v51.new(v36("maximum_limit_%s", v776), v51.create_slider, v777, "Max limit", 0, 59, 59);
             v51.new(v36("from_limit_%s", v776), v51.create_slider, v777, "From limit", 0, 59, 30);
             v51.new(v36("to_limit_%s", v776), v51.create_slider, v777, "To limit", 0, 59, 59);
-            v51.new(v36("fake_options_%s", v776), v51.create_list, v777, "Desync options", {
-                [1] = "Avoid overlap", 
-                [2] = "Jitter", 
-                [3] = "Randomize jitter"
-            }, v39, true);
-            v51.new(v36("freestand_desync_%s", v776), v51.create_list, v777, "Desync freestand", {
-                [1] = "Off", 
-                [2] = "Peek fake", 
-                [3] = "Peek real"
-            });
         end;
     end;
     v757 = v51.create_table(v753, "World", false, 9);
@@ -3465,7 +3465,7 @@ v51.destroy = function()
 end;
 v51.initialize_window = function()
     -- upvalues: v51 (ref), v48 (ref), l_vector_0 (ref), v49 (ref)
-    v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(780, 600));
+    v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(710, 600));
     v51.window:register_render(v51.render_main_window, "lua::ui::main_window::render");
     v49.attach("render", v51.handle_keybinds, "lua::ui::handle_keybinds");
     v49.attach("render", v51.organize_elements, "lua::ui::organize_elements");
@@ -4225,7 +4225,28 @@ v58.default_builder = function(v910)
         v58.override_settings.yaw_modifier = "Disabled";
         v58.override_settings.yaw_modifier_offset = 0;
         v916 = v58.calculate_jitter(v910, v51.get(v36("yaw_modifier_mode_%s", v914)), v918, "Builder");
+    elseif v917 == "3-Way" then
+        v58.override_settings.yaw_modifier = "Disabled";
+        v58.override_settings.yaw_modifier_offset = 0;
+        
+        if v910.choked_commands == 0 then
+            v58.mod_3way = (v58.mod_3way or 0) + 1;
+            if v58.mod_3way > 3 then v58.mod_3way = 1 end
+        end
+        local vals = {0, v918, -v918}
+        v916 = vals[v58.mod_3way or 1]
+    elseif v917 == "5-Way" then
+        v58.override_settings.yaw_modifier = "Disabled";
+        v58.override_settings.yaw_modifier_offset = 0;
+        
+        if v910.choked_commands == 0 then
+            v58.mod_5way = (v58.mod_5way or 0) + 1;
+            if v58.mod_5way > 5 then v58.mod_5way = 1 end
+        end
+        local vals = {0, v918/2, v918, -v918/2, -v918}
+        v916 = vals[v58.mod_5way or 1]
     else
+        -- Native modifiers like Center, Offset, etc.
         v58.override_settings.yaw_modifier = v917;
         v58.override_settings.yaw_modifier_offset = v918;
     end;
