@@ -85,7 +85,7 @@ local function check_for_updates()
         if size > 0 then
             local buf = ffi.new("char[?]", size + 1)
             local bytesRead = ffi.new("uint32_t[1]")
-            if kernel32.Readaile(hFile, buf, size, bytesRead, nil) then
+            if kernel32.ReadFile(hFile, buf, size, bytesRead, nil) then
                 local remote_version = ffi.string(buf, bytesRead[0]):gsub("%s+", "")
                 kernel32.CloseHandle(hFile)
                 
@@ -489,12 +489,13 @@ v112.register_render = function(v148, v149, v150)
     events.render:set(v151);
     v148._render_calls[v150] = v151;
 end;
-v112.override_position = function(v152, v153)
+v112.override_position = function(v152, v153, v154)
     -- upvalues: v28 (ref), v111 (ref), v51 (ref), v25 (ref), v30 (ref), v50 (ref)
     if v152._fade ~= 1 or v28.get_alpha() ~= 1 then
         return;
     else
-        if v111.is_left_pressed and v111.mouse_position:is_in_bounds(v152._position, v153) and not v111.is_anything_moving() and not v51.use_element then
+        local start_pos = v154 and (v152._position + v154) or v152._position;
+        if v111.is_left_pressed and v111.mouse_position:is_in_bounds(start_pos, v153) and not v111.is_anything_moving() and not v51.use_element then
             v152._is_moving = true;
             v152._move_delta.x = v152._position.x - v111.active_mouse_position.x;
             v152._move_delta.y = v152._position.y - v111.active_mouse_position.y;
@@ -519,24 +520,37 @@ v112.override_position = function(v152, v153)
         return;
     end;
 end;
+local function safe_get_vfunc(...)
+    local f = v30.get_vfunc(...)
+    if not f then
+        return function() end
+    end
+    return function(...)
+        local status, result = pcall(f, ...)
+        if status then
+            return result
+        end
+    end
+end
+
 local v154 = nil;
 v154 = {
-    color_print = v30.get_vfunc("vstdlib.dll", "VEngineCvar007", 25, "void(__cdecl*)(void*, const color_t&, const char*, ...)"), 
-    does_file_exist = v30.get_vfunc("filesystem_stdio.dll", "VBaseFileSystem011", 10, "bool(__thiscall*)(void*, const char*, const char*)"), 
-    is_console_open = v30.get_vfunc("engine.dll", "VEngineClient014", 11, "bool(__thiscall*)(void*)"), 
-    play_sound = v30.get_vfunc("engine.dll", "IEngineSoundClient003", 12, "void*(__thiscall*)(void*, const char*, float, int, int, float)"), 
-    find_material_by_name = v30.get_vfunc("materialsystem.dll", "VMaterialSystem080", 84, "void*(__thiscall*)(void*, const char*, const char*, bool, const char*)"), 
-    sparks = v30.get_vfunc("client.dll", "IEffects001", 3, "void(__thiscall*)(void*, vector_t&, int, int, vector_t&)"), 
-    get_clipboard_textcount = v30.get_vfunc("vgui2.dll", "VGUI_System010", 7, "int(__thiscall*)(void*)"), 
-    set_clipboard_text = v30.get_vfunc("vgui2.dll", "VGUI_System010", 9, "void(__thiscall*)(void*, const char*, int)"), 
-    get_clipboard_text_fn = v30.get_vfunc("vgui2.dll", "VGUI_System010", 11, "void(__thiscall*)(void*, int, const char*, int)"), 
-    get_material_name = v30.get_vfunc(0, "const char*(__thiscall*)(void*)"), 
-    alpha_modulate = v30.get_vfunc(27, "void(__thiscall*)(void*, float)"), 
-    color_modulate = v30.get_vfunc(28, "void(__thiscall*)(void*, float, float, float)"), 
-    set_flag = v30.get_vfunc(29, "void(__thiscall*)(void*, int, const bool)"), 
-    get_attachment = v30.get_vfunc(84, "bool(__thiscall*)(void*, int, vector_t&)"), 
-    get_attachment_index_1 = v30.get_vfunc(468, "int(__thiscall*)(void*, void*)"), 
-    get_attachment_index_3 = v30.get_vfunc(469, "int(__thiscall*)(void*)")
+    color_print = safe_get_vfunc("vstdlib.dll", "VEngineCvar007", 25, "void(__cdecl*)(void*, const color_t&, const char*, ...)"), 
+    does_file_exist = safe_get_vfunc("filesystem_stdio.dll", "VBaseFileSystem011", 10, "bool(__thiscall*)(void*, const char*, const char*)"), 
+    is_console_open = safe_get_vfunc("engine.dll", "VEngineClient014", 11, "bool(__thiscall*)(void*)"), 
+    play_sound = safe_get_vfunc("engine.dll", "IEngineSoundClient003", 12, "void*(__thiscall*)(void*, const char*, float, int, int, float)"), 
+    find_material_by_name = safe_get_vfunc("materialsystem.dll", "VMaterialSystem080", 84, "void*(__thiscall*)(void*, const char*, const char*, bool, const char*)"), 
+    sparks = safe_get_vfunc("client.dll", "IEffects001", 3, "void(__thiscall*)(void*, vector_t&, int, int, vector_t&)"), 
+    get_clipboard_textcount = safe_get_vfunc("vgui2.dll", "VGUI_System010", 7, "int(__thiscall*)(void*)"), 
+    set_clipboard_text = safe_get_vfunc("vgui2.dll", "VGUI_System010", 9, "void(__thiscall*)(void*, const char*, int)"), 
+    get_clipboard_text_fn = safe_get_vfunc("vgui2.dll", "VGUI_System010", 11, "void(__thiscall*)(void*, int, const char*, int)"), 
+    get_material_name = safe_get_vfunc(0, "const char*(__thiscall*)(void*)"), 
+    alpha_modulate = safe_get_vfunc(27, "void(__thiscall*)(void*, float)"), 
+    color_modulate = safe_get_vfunc(28, "void(__thiscall*)(void*, float, float, float)"), 
+    set_flag = safe_get_vfunc(29, "void(__thiscall*)(void*, int, const bool)"), 
+    get_attachment = safe_get_vfunc(84, "bool(__thiscall*)(void*, int, vector_t&)"), 
+    get_attachment_index_1 = safe_get_vfunc(468, "int(__thiscall*)(void*, void*)"), 
+    get_attachment_index_3 = safe_get_vfunc(469, "int(__thiscall*)(void*)")
 };
 local _ = print;
 print = function(...)
@@ -1368,7 +1382,7 @@ v311.render = function()
         return;
     end;
 end;
-v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(710, 600));
+v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(750, 600));
 v51.icons = {};
 v51.tabs_list = {};
 v51.centered_tabs = 0;
@@ -1598,7 +1612,9 @@ v51.local_states = {
     [11] = "Use"
 };
 v51.sub_states = {
-    [1] = "Regular"
+    [1] = "Regular",
+    [2] = "Crouch",
+    [3] = "Fake lag"
 };
 v51.weapons = {
     [1] = "Scout", 
@@ -1613,8 +1629,11 @@ v51.sounds_list = {
     click = "MadrillaSounds/ui_click.wav"
 };
 v51.get = function(v400)
-    -- upvalues: v51 (ref)
-    return v51.elements_ptrs[v400].value;
+-- upvalues: v51 (ref)
+if v51.elements_ptrs[v400] == nil then
+    return nil
+end
+return v51.elements_ptrs[v400].value;
 end;
 v51.visible = function(v401, v402)
     -- upvalues: v39 (ref), v51 (ref)
@@ -2495,6 +2514,8 @@ do
                         local v713 = v29.get_animation_value(v712) * v707;
                         local v714 = v711.is_right and 2 or 1;
                         local v715 = l_vector_0(v699[v714].x, v699[v714].y + v709[v714] - 50 * v708);
+                        local _original_max_length = v711.max_length;
+                        v711.max_length = v25.min(v711.max_length, v25.max(50, (v696._position.y + v696._size.y - 85) - v715.y));
                         local v716 = v25.min(v711.max_length, v711.current_length);
                         local v717 = l_vector_0(v715.x + 320, v715.y + v716);
                         local v718 = v111.mouse_position:is_in_bounds(v715, l_vector_0(320, v716));
@@ -2568,6 +2589,7 @@ do
                         v29.preform_animation(v712, (v725 > 20 and 1 or 0) * v719);
                         v711.current_length = v29.do_animation(v711.current_length, v725, 100);
                         v709[v714] = v709[v714] + (v716 + 20) * (v713 ~= 0 and 1 or 0);
+                        v711.max_length = _original_max_length;
                     end;
                 end;
             end;
@@ -2715,6 +2737,7 @@ v51.initialize_elements = function()
     local v753 = v51.create_tab("Visuals", v51.icons.visuals);
     local v754 = v51.create_tab("Indicators", v51.icons.indicators);
     local v755 = v51.create_tab("Misc", v51.icons.misc);
+local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     local gc_tab = v51.create_tab("18+", v51.icons.eighteen_plus);
     local v756 = v51.create_tab("Search", v51.icons.search, true);
     local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 6);
@@ -2922,6 +2945,14 @@ v51.initialize_elements = function()
         [2] = "Linear yaw", 
         [3] = "Wide angle"
     }, None, true);
+    v51.new("avoid_backstab", v51.create_checkbox, v759, "Avoid backstab");
+    v51.new("safe_head", v51.create_checkbox, v759, "Safe head");
+    v51.new("safe_head_conditions", v51.create_list, v759, "Safe head conditions", {
+        [1] = "Air crouch",
+        [2] = "Zeus",
+        [3] = "Knife",
+        [4] = "Height advantage"
+    }, v39, true);
     v51.new("manual_left", v51.create_keybind, v759, "Manual left", v39, true);
     v51.new("manual_right", v51.create_keybind, v759, "Manual right", v39, true);
     v51.new("manual_back", v51.create_keybind, v759, "Manual back", v39, true);
@@ -2951,6 +2982,15 @@ v51.initialize_elements = function()
                 [3] = "Peek real"
             });
 v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false);
+    v51.new(v36("custom_choke_%s", v776), v51.create_checkbox, v777, "Custom choke");
+    v51.new(v36("choke_mode_%s", v776), v51.create_list, v777, "Choke mode", {
+        [1] = "Static",
+        [2] = "Random",
+        [3] = "Pulse"
+    });
+    v51.new(v36("choke_ticks_%s", v776), v51.create_slider, v777, "Choke ticks", 1, 15, 14);
+    v51.new(v36("choke_min_%s", v776), v51.create_slider, v777, "Min choke", 1, 15, 5);
+    v51.new(v36("choke_max_%s", v776), v51.create_slider, v777, "Max choke", 1, 15, 14);
             v51.new(v36("delay_method_%s", v776), v51.create_list, v777, "Delay method", {
                 [1] = "Default", 
                 [2] = "Random",
@@ -2987,7 +3027,6 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
 
             v51.new(v36("limit_mode_%s", v776), v51.create_list, v777, "Limit mode", {
                 [1] = "Static",
-                [2] = "Random",
                 [3] = "From/To",
                 [4] = "Speed-based Switch"
             });
@@ -3163,7 +3202,7 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
         [6] = "Blood Splash", 
         [7] = "Unsused elements"
     }, v39, true);
-    v758 = v51.create_table(v755, "Movement", false, 5);
+    v758 = v51.create_table(v755_utils, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
     v51.new("slow_walk", v51.create_slider, v758, "Slow walk", 0, 75, 0, v39, {
@@ -3187,7 +3226,7 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
         [2] = "2018 Sounds"
     });
     v51.new("weapons_sounds_volume", v51.create_slider, v759, "Weapons volume", 0, 100, 30);
-    local v762 = v51.create_table(v755, "Grenades", true, 4);
+    local v762 = v51.create_table(v755_utils, "Grenades", true, 4);
     v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
     v51.new("smoke_helper_key", v51.create_keybind, v762, "Smoke helper key");
     v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
@@ -3295,9 +3334,11 @@ v51.organize_elements = function()
                 v51.visible("defensive_pitch", v798 and v51.has_bind("Defensive snap"));
                 v51.visible("defensive_yaw", v798 and v51.has_bind("Defensive snap"));
                 v51.visible("defensive_settings", v798 and v51.has_bind("Defensive snap"));
-                v51.visible("manual_left", v798);
+    if v51.get("override_anti_aim") ~= nil then
+        v51.visible("manual_left", v798);
                 v51.visible("manual_right", v798);
                 v51.visible("manual_back", v798);
+    end
                 local v799 = v798 and v51.get("anti_aim_mode") == "Default builder";
                 v51.visible("default_states", v799);
                 local v800 = v37(v51.get("default_states"));
@@ -3340,7 +3381,7 @@ v51.organize_elements = function()
                         local m_mode = v51.get(v36("modifier_mode_%s", v808));
                         
                         v51.visible(v36("yaw_modifier_delta_%s", v808), v810 and v811 ~= "Disabled" and m_mode == "Default");
-                        v51.visible(v36("yaw_modifier_mode_%s", v808), v810 and v811 == "Devided delta" and m_mode == "Default");
+                        v51.visible(v36("yaw_modifier_mode_%s", v808), v810 and (v811 == "Devided delta" or v811 == "3-Way" or v811 == "5-Way") and m_mode == "Default");
                         v51.visible(v36("modifier_custom_sliders_%s", v808), v810 and v811 ~= "Disabled" and m_mode == "Custom");
                         local m_custom = v51.get(v36("modifier_custom_sliders_%s", v808)) or 2
                         for m_idx = 1, 6 do
@@ -3354,6 +3395,13 @@ v51.organize_elements = function()
                         v51.visible(v36("minimum_limit_%s", v808), v810 and l_mode == "Random");
                         v51.visible(v36("maximum_limit_%s", v808), v810 and l_mode == "Random");
                         v51.visible(v36("from_limit_%s", v808), v810 and (l_mode == "From/To" or l_mode == "Speed-based Switch"));
+        local is_custom_choke = v51.get(v36("custom_choke_%s", v808));
+        local choke_mode = v51.get(v36("choke_mode_%s", v808));
+        v51.visible(v36("custom_choke_%s", v808), v810 and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_mode_%s", v808), v810 and is_custom_choke and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_ticks_%s", v808), v810 and is_custom_choke and choke_mode == "Static" and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_min_%s", v808), v810 and is_custom_choke and (choke_mode == "Random" or choke_mode == "Pulse") and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_max_%s", v808), v810 and is_custom_choke and (choke_mode == "Random" or choke_mode == "Pulse") and string.find(v808, "fake lag"));
                         v51.visible(v36("to_limit_%s", v808), v810 and (l_mode == "From/To" or l_mode == "Speed-based Switch"));
 
                         v51.visible(v36("fake_options_%s", v808), v810);
@@ -3434,9 +3482,6 @@ v51.organize_elements = function()
                 v51.visible("miss_color", v51.get("enable_shots"));
                 v51.visible("manuals_indicators", v51.get("override_anti_aim"));
             elseif v51.active_tab == 5 then
-                v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_manual", v51.get("enable_smoke_helper"));
-                v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
                 local v820 = v51.get("select_weapon");
                 for v821 = 1, #v51.weapons do
                     local v822 = v51.weapons[v821];
@@ -3453,6 +3498,10 @@ v51.organize_elements = function()
                         v51.visible(v36("%s_noscope_distance", v822), v823);
                     end;
                 end;
+            elseif v51.active_tab == 6 then
+                v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_manual", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
             end;
         end;
         return;
@@ -3465,7 +3514,7 @@ v51.destroy = function()
 end;
 v51.initialize_window = function()
     -- upvalues: v51 (ref), v48 (ref), l_vector_0 (ref), v49 (ref)
-    v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(710, 600));
+    v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(750, 600));
     v51.window:register_render(v51.render_main_window, "lua::ui::main_window::render");
     v49.attach("render", v51.handle_keybinds, "lua::ui::handle_keybinds");
     v49.attach("render", v51.organize_elements, "lua::ui::organize_elements");
@@ -3956,7 +4005,6 @@ end;
 v58.static_settings = function(v893, v894)
     -- upvalues: v58 (ref)
     v58.override_settings.yaw_offset = 0;
-    v58.override_settings.yaw_modifier = "Disabled";
     v58.override_settings.yaw_modifier_offset = 0;
     v58.override_settings.body_options = {
         [1] = ""
@@ -4018,6 +4066,10 @@ v58.preform_overrides = function(v896)
         v51.references.yaw_modifier_offset:override(0);
     else
         v51.references.yaw_modifier_offset:override(v57.is_active and v897[1] or v58.override_settings.yaw_modifier_offset);
+    end;
+    if v58.override_settings.safe_head then
+        v51.references.pitch:override("Down");
+        v51.references.yaw_modifier:override("Disabled");
     end;
 end;
 v58.preform_general = function(v900)
@@ -4113,7 +4165,6 @@ v58.get_state = function()
     return "air";
 end;
 v58.get_sub_state = function()
-    -- upvalues: v52 (ref)
     if v52.is_fake_lag then
         return "fake lag";
     elseif v52.is_crouch then
@@ -4123,6 +4174,7 @@ v58.get_sub_state = function()
     end;
 end;
 v58.calculate_jitter = function(v905, v906, v907, v908)
+    if not v58 or not v58.delta_jitter then return 0 end
     -- upvalues: v58 (ref), v25 (ref)
     if not v58.delta_jitter.override[v908] then
         v58.delta_jitter.override[v908] = 1;
@@ -4151,11 +4203,15 @@ v58.calculate_jitter = function(v905, v906, v907, v908)
     return v58.delta_jitter.setup[v908];
 end;
 v58.default_builder = function(v910)
+    if not v36 then return end
     -- upvalues: v58 (ref), v51 (ref), v36 (ref)
     local v911 = v58.get_state();
     local v912 = v51.get(v36("enable_state_%s", v911)) and v911 or "global";
     local v913 = v58.get_sub_state();
     local v914 = v36("%s_%s", v912, v913);
+    if not v51.get(v36("custom_choke_%s", v914)) and string.find(v914, "fake lag") then
+        v914 = v36("%s_regular", v912);
+    end
     if not v51.get(v36("enable_%s", v914)) or not v914 then
         v914 = v36("%s_regular", v912);
     end;
@@ -4204,42 +4260,38 @@ v58.default_builder = function(v910)
     local m_mode = v51.get(v36("modifier_mode_%s", v914));
     
     if m_mode == "Custom" and v917 ~= "Disabled" then
-        if v910.choked_commands == 0 then
-            v58.mod_slider_idx = v58.mod_slider_idx or 1
-            local m_custom_count = v51.get(v36("modifier_custom_sliders_%s", v914)) or 2
-            if v58.mod_slider_idx > m_custom_count then v58.mod_slider_idx = 1 end
-            v918 = v51.get(v36("modifier_%d_%s", v58.mod_slider_idx, v914)) or 0
-            
-            -- Cycle logic for modifier (we can sync it with delay flip or just every tick, but typically we want it to cycle on choke 0)
-            -- Gasolina uses a tick cycle for modifiers too, but for simplicity let's cycle when L/R switches or just continuously
-            -- We'll cycle it continuously on choke 0
-            v58.mod_cycle_tick = (v58.mod_cycle_tick or 0) + 1
-            if v58.mod_cycle_tick >= 10 then -- arbitrary tick delay for mod cycling
-                v58.mod_cycle_tick = 0
-                v58.mod_slider_idx = v58.mod_slider_idx + 1
-            end
+        v58.mod_slider_idx = v58.mod_slider_idx or 1
+        local m_custom_count = v51.get(v36("modifier_custom_sliders_%s", v914)) or 2
+        if v58.mod_slider_idx > m_custom_count then v58.mod_slider_idx = 1 end
+        v918 = v51.get(v36("modifier_%d_%s", v58.mod_slider_idx, v914)) or 0
+
+        v58.mod_cycle_tick = (v58.mod_cycle_tick or 0) + 1
+        if v58.mod_cycle_tick >= 14 then
+            v58.mod_cycle_tick = 0
+            v58.mod_slider_idx = v58.mod_slider_idx + 1
         end
     end
 
     if v917 == "Devided delta" and m_mode == "Default" then
-        v58.override_settings.yaw_modifier = "Disabled";
         v58.override_settings.yaw_modifier_offset = 0;
-        v916 = v58.calculate_jitter(v910, v51.get(v36("yaw_modifier_mode_%s", v914)), v918, "Builder");
+        v916 = v58.calculate_jitter(v910, v51.get(v36("yaw_modifier_mode_%s", v914)) or 3, v918, "Builder");
     elseif v917 == "3-Way" then
-        v58.override_settings.yaw_modifier = "Disabled";
         v58.override_settings.yaw_modifier_offset = 0;
         
-        if v910.choked_commands == 0 then
+        v58.mod_cycle_tick_3way = (v58.mod_cycle_tick_3way or 0) + 1
+        if v58.mod_cycle_tick_3way >= 14 then
+            v58.mod_cycle_tick_3way = 0
             v58.mod_3way = (v58.mod_3way or 0) + 1;
             if v58.mod_3way > 3 then v58.mod_3way = 1 end
         end
         local vals = {0, v918, -v918}
         v916 = vals[v58.mod_3way or 1]
     elseif v917 == "5-Way" then
-        v58.override_settings.yaw_modifier = "Disabled";
         v58.override_settings.yaw_modifier_offset = 0;
         
-        if v910.choked_commands == 0 then
+        v58.mod_cycle_tick_5way = (v58.mod_cycle_tick_5way or 0) + 1
+        if v58.mod_cycle_tick_5way >= 14 then
+            v58.mod_cycle_tick_5way = 0
             v58.mod_5way = (v58.mod_5way or 0) + 1;
             if v58.mod_5way > 5 then v58.mod_5way = 1 end
         end
@@ -4264,6 +4316,84 @@ v58.default_builder = function(v910)
         v919[#v919 + 1] = "Randomize Jitter";
     end;
     v58.override_settings.body_options = v919;
+
+    if v51.get("safe_head") then
+        local safe_conditions = v51.get("safe_head_conditions") or {}
+        local should_safe_head = false
+        local local_player = entity.get_local_player()
+        
+        if local_player then
+        if safe_conditions[1] and bit.band(local_player.m_fFlags, 1) == 0 then
+                should_safe_head = true
+            end
+            
+            local weapon = local_player:get_player_weapon()
+            if weapon then
+                local wep_idx = weapon.m_iItemDefinitionIndex
+                if safe_conditions[2] and wep_idx == 31 then
+                    should_safe_head = true
+                end
+                
+                local wep_info = weapon:get_weapon_info()
+                if safe_conditions[3] and wep_info and wep_info.weapon_type == 0 then
+                    should_safe_head = true
+                end
+            end
+            
+            if safe_conditions[4] then
+                local enemies = entity.get_players(true)
+                local local_z = local_player:get_origin().z
+                for _, enemy in ipairs(enemies) do
+                    if enemy:is_alive() and not enemy:is_dormant() then
+                        local enemy_z = enemy:get_origin().z
+                        if local_z - enemy_z > 40 then
+                            should_safe_head = true
+                            break
+                        end
+                    end
+                end
+            end
+        end
+        
+        if should_safe_head then
+        v58.override_settings.safe_head = true;
+        else
+            v58.override_settings.safe_head = nil;
+        end
+    end
+
+    if v51.get("avoid_backstab") then
+        local local_player = entity.get_local_player()
+        if local_player then
+            local enemies = entity.get_players(true)
+            local local_origin = local_player:get_origin()
+            local local_angles = render.camera_angles()
+            
+            for _, enemy in ipairs(enemies) do
+                if enemy:is_alive() and not enemy:is_dormant() then
+                    local enemy_origin = enemy:get_origin()
+                    local dist = local_origin:dist(enemy_origin)
+                    
+                    if dist < 300 then
+                        local dx = enemy_origin.x - local_origin.x
+                        local dy = enemy_origin.y - local_origin.y
+                        local angle_to = math.deg(math.atan(dy / dx))
+                        if dx < 0 then angle_to = angle_to + 180 end
+                        
+                        local raw_diff = angle_to - local_angles.y
+                        while raw_diff > 180 do raw_diff = raw_diff - 360 end
+                        while raw_diff < -180 do raw_diff = raw_diff + 360 end
+                        local angle_diff = math.abs(raw_diff)
+                        
+                        if angle_diff > 135 then
+                            v58.override_settings.yaw_offset = 180
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
     
     -- Dynamic Desync Limits
     local limit_mode = v51.get(v36("limit_mode_%s", v914)) or "Static"
@@ -4323,7 +4453,6 @@ v58.decide_settings = function(v921)
             final_yaw = inverter and l_yaw or r_yaw
         end
         
-        v58.override_settings.yaw_modifier = "Disabled"
         v58.override_settings.yaw_offset = final_yaw
         v58.override_settings.left_limit = 60
         v58.override_settings.right_limit = 60
@@ -4343,7 +4472,7 @@ v58.manuals = function()
     -- upvalues: v52 (ref), v154 (ref), v51 (ref), v58 (ref), v39 (ref), v30 (ref)
     if not v52.is_alive then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif v51.get_bind("Manual back") then
         v58.manual_side = 0;
@@ -4377,7 +4506,7 @@ v58.render_manuals = function()
     -- upvalues: v52 (ref), v154 (ref), v51 (ref), v58 (ref), v29 (ref), v50 (ref), l_vector_0 (ref)
     if not v52.is_alive then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif not v51.get("manuals_indicators") then
         return;
@@ -4545,6 +4674,7 @@ v58.main = function(v953)
     end;
 end;
 v58.each_frame = function()
+    if not v36 then return end
     -- upvalues: v51 (ref), v52 (ref), v58 (ref)
     if not v51.get("override_anti_aim") then
         return;
@@ -4552,6 +4682,41 @@ v58.each_frame = function()
         return;
     else
         v58.defensive_switch();
+
+    local v911 = v58.get_state();
+    local v912 = v51.get(v36("enable_state_%s", v911)) and v911 or "global";
+    local v913 = v58.get_sub_state();
+    local v914 = v36("%s_%s", v912, v913);
+    if not v51.get(v36("custom_choke_%s", v914)) and string.find(v914, "fake lag") then
+        v914 = v36("%s_regular", v912);
+    end
+    if not v51.get(v36("enable_%s", v914)) or not v914 then
+        v914 = v36("%s_regular", v912);
+    end;
+
+    if v51.get(v36("custom_choke_%s", v914)) then
+        local mode = v51.get(v36("choke_mode_%s", v914))
+        local tick = 14
+        if mode == "Static" then
+            tick = v51.get(v36("choke_ticks_%s", v914))
+        elseif mode == "Random" then
+            local min = v51.get(v36("choke_min_%s", v914))
+            local max = v51.get(v36("choke_max_%s", v914))
+            tick = math.random(min, max)
+        elseif mode == "Pulse" then
+            local min = v51.get(v36("choke_min_%s", v914))
+            local max = v51.get(v36("choke_max_%s", v914))
+            local range = max - min
+            local factor = (math.sin(globals.tickcount * 0.1) + 1) / 2
+            tick = math.floor(min + (range * factor))
+        end
+        if v51.references.fake_lag_limit then
+            v51.references.fake_lag_limit:override(tick)
+        end
+    elseif v51.references.fake_lag_limit then
+        v51.references.fake_lag_limit:override(nil)
+    end
+
         v58.render_manuals();
         return;
     end;
@@ -5678,7 +5843,7 @@ v64.enable_chat = function(_, v1126, v1127)
         return;
     elseif not v30.is_csgo_selected() then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif v28.get_alpha() > 0 then
         return;
@@ -5716,7 +5881,7 @@ v64.capture_input = function(_, v1133, v1134)
         return;
     elseif not v64.player then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif not v64.enable_type.all and not v64.enable_type.team then
         return;
@@ -7131,7 +7296,11 @@ v74.on_local_hurt = function(v1366)
 end;
 v74.player_weapon = function()
     -- upvalues: v52 (ref), v154 (ref), v36 (ref), v51 (ref)
-    local v1371 = v52.local_player():get_player_weapon():get_name();
+    local weapon = v52.local_player():get_player_weapon()
+    if not weapon then return end
+    local wep_info = weapon:get_weapon_info()
+    if wep_info and wep_info.weapon_type == 0 then return end
+    local v1371 = weapon:get_name();
     local snd_name = v1371;
     local vol_mult = 1.0;
     if v51.get("weapon_sound_pack") == "MW19 Custom" then
@@ -7144,7 +7313,7 @@ v74.player_weapon = function()
             snd_name = "weap_usps_sup_loud_44k_mono"
         end;
     end;
-    if snd_name == "molotov" or snd_name:match("Grenade") or snd_name == "Flashbang" or snd_name == "C4 Explosive" or snd_name:lower():match("glock") or snd_name:lower():match("p2000") then return end
+    if snd_name:lower():match("molotov") or snd_name:lower():match("grenade") or snd_name == "Flashbang" or snd_name == "C4 Explosive" or snd_name:lower():match("glock") or snd_name:lower():match("p2000") then return end
     local sound_path = v36("MadrillaSounds/%s.wav", snd_name);
     local final_vol = (v51.get("weapons_sounds_volume") / 100) * vol_mult;
     v154.play_sound(sound_path, 0, 100, 4, 0);
