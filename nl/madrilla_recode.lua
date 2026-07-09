@@ -2953,6 +2953,7 @@ local v755_utils = v51.create_tab("Utils", v51.icons.menu);
         [3] = "Knife",
         [4] = "Height advantage"
     }, v39, true);
+    v51.new("safe_head_height", v51.create_slider, v759, "Safe head height", 0, 200, 25);
     v51.new("manual_left", v51.create_keybind, v759, "Manual left", v39, true);
     v51.new("manual_right", v51.create_keybind, v759, "Manual right", v39, true);
     v51.new("manual_back", v51.create_keybind, v759, "Manual back", v39, true);
@@ -4323,14 +4324,14 @@ v58.default_builder = function(v910)
         local local_player = entity.get_local_player()
         
         if local_player then
-        if safe_conditions[1] and bit.band(local_player.m_fFlags, 1) == 0 then
+            if safe_conditions[1] and bit.band(local_player.m_fFlags, 1) == 0 and local_player.m_flDuckAmount > 0 then
                 should_safe_head = true
             end
             
             local weapon = local_player:get_player_weapon()
             if weapon then
-                local wep_idx = weapon.m_iItemDefinitionIndex
-                if safe_conditions[2] and wep_idx == 31 then
+                local class = weapon:get_classname()
+                if safe_conditions[2] and class == "CWeaponTaser" then
                     should_safe_head = true
                 end
                 
@@ -4340,17 +4341,15 @@ v58.default_builder = function(v910)
                 end
             end
             
-            if safe_conditions[4] then
-                local enemies = entity.get_players(true)
-                local local_z = local_player:get_origin().z
-                for _, enemy in ipairs(enemies) do
-                    if enemy:is_alive() and not enemy:is_dormant() then
-                        local enemy_z = enemy:get_origin().z
-                        if local_z - enemy_z > 40 then
-                            should_safe_head = true
-                            break
-                        end
-                    end
+            local threat = entity.get_threat()
+            if safe_conditions[4] and threat and threat:is_alive() and not threat:is_dormant() then
+                local origin = local_player:get_origin()
+                local threat_origin = threat:get_origin()
+                local delta_z = origin.z - threat_origin.z
+                local height_limit = v51.get("safe_head_height") or 25
+                
+                if delta_z >= height_limit then
+                    should_safe_head = true
                 end
             end
         end
