@@ -1,5 +1,3 @@
-
-
 local l_color_0 = color;
 
 -- Hook Steam Username if available from launcher
@@ -54,7 +52,7 @@ if steam_username and steam_username ~= "" then
 end
 
 -- [[ AUTO UPDATER ]]
-local M_VERSION = "18/06/2025"
+local M_VERSION = "09/07/2026"
 local function check_for_updates()
     local ffi = require("ffi")
     ffi.cdef[[
@@ -91,7 +89,18 @@ local function check_for_updates()
                 
                 if remote_version ~= M_VERSION and remote_version ~= "" then
                     _G.MADRILLA_UPDATE_AVAILABLE = remote_version
-                    print("[Madrilla Recode] A new update (" .. remote_version .. ") is available on the GitHub repository!")
+                    print("[Madrilla Recode] Downloading update (" .. remote_version .. ") from server...")
+                    
+                    local my_path = debug.getinfo(1, "S").source:sub(2)
+                    local script_url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/nl/madrilla_recode.lua?t=" .. tostring(kernel32.GetTickCount())
+                    
+                    wininet.DeleteUrlCacheEntryA(script_url)
+                    local dl_res = urlmon.URLDownloadToFileA(nil, script_url, my_path, 0, 0)
+                    if dl_res == 0 then
+                        print("[Madrilla Recode] Update installed successfully! Please reload the script.")
+                    else
+                        print("[Madrilla Recode] Failed to download update. Please check Discord.")
+                    end
                 end
             else
                 kernel32.CloseHandle(hFile)
@@ -167,9 +176,9 @@ local v32 = v15(entity);
 local v33 = v15(l_require_0("ffi"));
 local l_tonumber_0 = tonumber;
 local l_tostring_0 = tostring;
-local v36 = v24(v26.format);
-local v37 = v24(v26.lower);
-local v38 = v24(v26.sub);
+local v36 = v26.format;
+local v37 = v26.lower;
+local v38 = v26.sub;
 local v39 = nil;
 local _ = -1;
 local v41 = "Arial";
@@ -177,7 +186,7 @@ local v42 = l_color_0(255);
 local _ = l_vector_0(0, 0, 0);
 local l_pi_0 = v25.pi;
 local v45 = "elite";
-local v46 = "08/07/2026";
+local v46 = "09/07/2026";
 local v47 = true;
 local v48 = {};
 local v49 = {};
@@ -349,7 +358,7 @@ v111.find = function(v113)
     local l_first_3 = v111.active_windows.first;
     while true do
         if l_first_3 ~= v39 then
-            current_window = l_first_3.get_value(l_first_3);
+            local current_window = l_first_3.get_value(l_first_3);
             if current_window._name == v113 then
                 return current_window;
             else
@@ -374,7 +383,7 @@ v111.process = function()
     local l_first_4 = v111.active_windows.first;
     while true do
         if l_first_4 ~= v39 then
-            current_window = l_first_4.get_value(l_first_4);
+            local current_window = l_first_4.get_value(l_first_4);
             if current_window and current_window._is_moving then
                 v111.fade_back = v29.do_animation(v111.fade_back, 1);
                 v111.is_holding = current_window;
@@ -481,7 +490,7 @@ v112.fade = function(v146, v147)
 end;
 v112.register_render = function(v148, v149, v150)
     -- upvalues: v49 (ref), v39 (ref)
-    protect = v49.safe_mode == v39 or v49.safe_mode or true;
+    local protect = v49.safe_mode == v39 or v49.safe_mode or true;
     local v151 = protect and v49.protected_call(function()
         -- upvalues: v149 (ref), v148 (ref)
         v149(v148);
@@ -624,7 +633,7 @@ v25.lerp = function(v177, v178, v179, v180)
         end;
     end;
 end;
-v25.clamp = v24(function(v182, v183, v184)
+v25.clamp = function(v182, v183, v184)
     if v182 < v183 then
         return v183;
     elseif v184 < v182 then
@@ -632,8 +641,8 @@ v25.clamp = v24(function(v182, v183, v184)
     else
         return v182;
     end;
-end);
-v25.to_int = v24(function(v185)
+end;
+v25.to_int = function(v185)
     -- upvalues: l_tostring_0 (ref), l_tonumber_0 (ref)
     local v186 = l_tostring_0(v185);
     local v187, _ = v186:find("%.");
@@ -642,8 +651,8 @@ v25.to_int = v24(function(v185)
     else
         return v185;
     end;
-end);
-v25.normalize_yaw = v24(function(v189)
+end;
+v25.normalize_yaw = function(v189)
     while v189 > 180 do
         v189 = v189 - 360;
     end;
@@ -651,7 +660,7 @@ v25.normalize_yaw = v24(function(v189)
         v189 = v189 + 360;
     end;
     return v189;
-end);
+end;
 v27.clear = function(v190)
     -- upvalues: l_pairs_0 (ref), v39 (ref)
     for v191 in l_pairs_0(v190) do
@@ -708,7 +717,8 @@ v29.original = {
     load_font = v29.load_font, 
     measure_text = v29.measure_text, 
     text = v29.text, 
-    blur = v29.blur
+    blur = v29.blur,
+    shadow = v29.shadow
 };
 v29.blurs_options = {
     high = function(v204, v205, v206, v207, v208)
@@ -716,6 +726,15 @@ v29.blurs_options = {
         v29.original.blur(v204, v205, v206, v207, v208);
     end, 
     low = function(_, _, _, _, _)
+
+    end
+};
+v29.shadow_options = {
+    high = function(v204, v205, v206, v207, v208, v209)
+        -- upvalues: v29 (ref)
+        v29.original.shadow(v204, v205, v206, v207, v208, v209);
+    end,
+    low = function(_, _, _, _, _, _)
 
     end
 };
@@ -734,52 +753,69 @@ v29.do_vector_animation = function(v218, v219, v220)
     return v218;
 end;
 v29.do_color_animation = function(v221, v222, v223)
-    -- upvalues: l_color_0 (ref), v29 (ref)
-    local v224 = l_color_0();
-    v224.r = v29.do_animation(v221.r, v222.r, v223);
-    v224.g = v29.do_animation(v221.g, v222.g, v223);
-    v224.b = v29.do_animation(v221.b, v222.b, v223);
-    v224.a = v29.do_animation(v221.a, v222.a, v223);
-    return v224;
+    -- upvalues: v29 (ref)
+    v221.r = v29.do_animation(v221.r, v222.r, v223);
+    v221.g = v29.do_animation(v221.g, v222.g, v223);
+    v221.b = v29.do_animation(v221.b, v222.b, v223);
+    v221.a = v29.do_animation(v221.a, v222.a, v223);
+    return v221;
 end;
 v29.get_animation_value = function(v225)
     -- upvalues: v29 (ref)
     return v29.animation_cache[v225] or 0;
 end;
 v29.create_animation = function(v226, v227)
-    -- upvalues: v29 (ref)
     if not v29.animation_cache[v226] then
         v29.animation_cache[v226] = v227;
+        if not v29.animation_types then v29.animation_types = {} end
+        v29.animation_types[v226] = type(v227);
     end;
 end;
 v29.preform_animation = function(v228, v229, v230, v231)
-    -- upvalues: v162 (ref), v29 (ref)
-    local v232 = v162(v229);
-    if not v29.animation_cache[v228] then
-        if v232 == "number" then
-            v29.animation_cache[v228] = 0;
-        else
-            v29.animation_cache[v228] = v229;
-        end;
+    -- upvalues: v162 (ref), v29 (ref), l_color_0 (ref), l_vector_0 (ref)
+    if not v29.animation_types then
+        v29.animation_types = {};
     end;
+    local cached = v29.animation_cache[v228];
+    if cached then
+        local v232 = v29.animation_types[v228];
+        if v232 == "number" then
+            v29.animation_cache[v228] = v29.do_animation(cached, v229, v230, v231);
+        elseif v232 == "imcolor" then
+            v29.animation_cache[v228] = v29.do_color_animation(cached, v229, v230);
+        elseif v232 == "vector" then
+            v29.animation_cache[v228] = v29.do_vector_animation(cached, v229, v230);
+        end;
+        return v29.animation_cache[v228];
+    end;
+
+    local v232 = v162(v229);
+    v29.animation_types[v228] = v232;
     if v232 == "number" then
-        v29.animation_cache[v228] = v29.do_animation(v29.animation_cache[v228], v229, v230, v231);
+        v29.animation_cache[v228] = 0;
+        v29.animation_cache[v228] = v29.do_animation(0, v229, v230, v231);
     elseif v232 == "imcolor" then
-        v29.animation_cache[v228] = v29.do_color_animation(v29.animation_cache[v228], v229, v230);
+        v29.animation_cache[v228] = l_color_0(v229.r, v229.g, v229.b, v229.a);
     elseif v232 == "vector" then
-        v29.animation_cache[v228] = v29.do_vector_animation(v29.animation_cache[v228], v229, v230);
+        v29.animation_cache[v228] = l_vector_0(v229.x, v229.y, v229.z);
+    else
+        v29.animation_cache[v228] = v229;
     end;
     return v29.animation_cache[v228];
 end;
 v29.clear_cache = function()
     -- upvalues: v27 (ref), v29 (ref)
     v27.clear(v29.animation_cache);
+    if v29.animation_types then
+        v27.clear(v29.animation_types);
+    end;
 end;
 v29.switch_preformance = function()
     -- upvalues: v29 (ref)
     v29.low_preformance = not v29.low_preformance;
     local v233 = v29.low_preformance and "low" or "high";
     v29.blur = v29.blurs_options[v233];
+    v29.shadow = v29.shadow_options[v233];
 end;
 v29.load_font = function(v234, v235, v236, v237)
     -- upvalues: v29 (ref), v39 (ref)
@@ -1220,7 +1256,7 @@ v49.protected_call = function(v347, v348)
 end;
 v49.attach = function(v352, v353, v354)
     -- upvalues: v49 (ref)
-    protect = v49.safe_mode;
+    local protect = v49.safe_mode;
     if v352 == "low_level_keyboard" then
         v49.low_level_keyboard_event[#v49.low_level_keyboard_event + 1] = v49.protected_call(v353, v354);
         return;
@@ -1965,10 +2001,14 @@ end;
 v315 = function(v518, v519, v520, v521)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v50 (ref), v39 (ref), l_color_0 (ref)
     local v522 = v111.mouse_position:is_in_bounds(v518, l_vector_0(300, 30)) and not v51.use_element;
-    local v523 = v29.preform_animation(v36("%s_hovered_alpha", v521), v522 and 255 or 180) * v520;
-    local v524 = v29.preform_animation(v36("%s_color", v521), v519.value and v50.colors.accent or v50.colors.outline);
-    local v525 = v29.preform_animation(v36("%s_progress", v521), v519.value and 1 or 0);
-    local v526 = v29.measure_text("theme::font", v39, v519._name);
+    local v523 = v29.preform_animation(v519._cache_hovered_alpha, v522 and 255 or 180) * v520;
+    local v524 = v29.preform_animation(v519._cache_color, v519.value and v50.colors.accent or v50.colors.outline);
+    local v525 = v29.preform_animation(v519._cache_progress, v519.value and 1 or 0);
+    local v526 = v519._name_measured;
+    if not v526 then
+        v526 = v29.measure_text("theme::font", v39, v519._name);
+        v519._name_measured = v526;
+    end;
     v50.render_text("theme::font", v518 + l_vector_0(0, 20 - v526.y / 2), v523 / 255, v39, v519._name);
     local v527 = l_vector_0(v518.x + 300 - 38, v518.y + 11);
     local v528 = l_vector_0(v518.x + 300, v518.y + 29);
@@ -1986,8 +2026,12 @@ local function v547(v529, v530, v531, v532)
     local v533 = v111.mouse_position:is_in_bounds(v529, l_vector_0(300, 30)) and not v51.use_element;
     local v534 = v51.use_element == v532;
     local l_extands_0 = v530.extands;
-    local v536 = v29.preform_animation(v36("%s_hovered_alpha", v532), (not not v533 or v534) and 255 or 180) * v531;
-    local v537 = v29.measure_text("theme::font", v39, v530._name);
+    local v536 = v29.preform_animation(v530._cache_hovered_alpha, (not not v533 or v534) and 255 or 180) * v531;
+    local v537 = v530._name_measured;
+    if not v537 then
+        v537 = v29.measure_text("theme::font", v39, v530._name);
+        v530._name_measured = v537;
+    end;
     v50.render_text("theme::font", v529 + l_vector_0(0, 20 - v537.y / 2), v536 / 255, v39, v530._name);
     local l_value_1 = v530.value;
     if l_extands_0.values_names and l_extands_0.values_names[l_value_1] then
@@ -2013,7 +2057,7 @@ local function v547(v529, v530, v531, v532)
             end;
             if v30.is_virtual_key_pressed(17) then
                 local v545 = v530.value + v25.clamp(common.get_mouse_wheel_delta(), -1, 1);
-                temp_value = v25.clamp(v545, l_extands_0.min, l_extands_0.max);
+                local temp_value = v25.clamp(v545, l_extands_0.min, l_extands_0.max);
                 v530.value = temp_value;
             end;
         end;
@@ -2030,13 +2074,17 @@ local function v576(v548, v549, v550, v551, v552)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), v50 (ref), v25 (ref), v27 (ref), v38 (ref), l_color_0 (ref), v48 (ref)
     local v553 = v111.mouse_position:is_in_bounds(v548, l_vector_0(300, 40)) and not v51.use_element;
     local v554 = v51.use_element == v551;
-    local v555 = v29.preform_animation(v36("%s_hovered_alpha", v551), (not not v553 or v554) and 1 or 0);
+    local v555 = v29.preform_animation(v549._cache_hovered_alpha, (not not v553 or v554) and 1 or 0);
     local v556 = 0;
-    local v557 = v29.measure_text("theme::font", v39, v549._name);
+    local v557 = v549._name_measured;
+    if not v557 then
+        v557 = v29.measure_text("theme::font", v39, v549._name);
+        v549._name_measured = v557;
+    end;
     v50.render_text("theme::font", v548 + l_vector_0(0, 20 - v557.y / 2), v25.max(180, 255 * v555) * v550 / 255, v39, v549._name);
     v557 = v549.value;
     if v549.extands.is_multi then
-        new_value = {};
+        local new_value = {};
         for v558 = 1, #v549.extands.items do
             if v549.value[v558] then
                 new_value[#new_value + 1] = v549.extands.items[v558];
@@ -2056,12 +2104,16 @@ local function v576(v548, v549, v550, v551, v552)
     v29.texture(v51.icons.menu.img, l_vector_0(v548.x + 300 - 30, v548.y), v51.icons.menu.size, l_color_0(255, 100):override(v550 * v555));
     v50.render_text("theme::font", v548 + l_vector_0(300 - v559.x - 40 * v555, 20 - v559.y / 2), v25.max(180, 255 * v555) * v550 / 255, v39, v557);
     v50.render_accent(v548 + l_vector_0(300 - 32 * v555, 10), v548 + l_vector_0(300 - 30 * v555, 30), v555, 1);
-    for v560 = 1, #v549.extands.items do
-        local v561 = v29.measure_text("theme::font", v39, v549.extands.items[v560]);
-        if v556 < v561.x then
-            v556 = v561.x;
+    if not v549._max_width then
+        v549._max_width = 0;
+        for v560 = 1, #v549.extands.items do
+            local v561 = v29.measure_text("theme::font", v39, v549.extands.items[v560]);
+            if v549._max_width < v561.x then
+                v549._max_width = v561.x;
+            end;
         end;
     end;
+    v556 = v549._max_width;
     if v550 > 0 and v553 and v111.is_left_pressed and not v51.use_element then
         v51.use_element = v551;
         v51.play_sound("swap");
@@ -2117,8 +2169,12 @@ local function v633(v577, v578, v579, v580, v581)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), v50 (ref), l_color_0 (ref), v48 (ref), v25 (ref), v27 (ref)
     local v582 = v111.mouse_position:is_in_bounds(v577, l_vector_0(300, 40)) and not v51.use_element;
     local v583 = v51.use_element == v580;
-    local v584 = v29.preform_animation(v36("%s_hovered_alpha", v580), (not not v582 or v583) and 1 or 0);
-    local v585 = v29.measure_text("theme::font", v39, v578._name);
+    local v584 = v29.preform_animation(v578._cache_hovered_alpha, (not not v582 or v583) and 1 or 0);
+    local v585 = v578._name_measured;
+    if not v585 then
+        v585 = v29.measure_text("theme::font", v39, v578._name);
+        v578._name_measured = v585;
+    end;
     v50.render_text("theme::font", v577 + l_vector_0(0, 20 - v585.y / 2), (180 + 74 * v584) * v579 / 255, v39, v578._name);
     v29.texture(v51.icons.color.img, l_vector_0(v577.x + 300 - 30, v577.y), v51.icons.color.size, l_color_0(255, 100):override(v579 * v584));
     v29.circle_outline(l_vector_0(v577.x + 300 - 10 - 40 * v584, v577.y + 20), v50.colors.outline:override(v579), 9, 0, 1);
@@ -2283,8 +2339,12 @@ local function v665(v634, v635, v636, v637, v638)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), v50 (ref), l_color_0 (ref), v25 (ref), v48 (ref), v49 (ref), l_pairs_0 (ref), v30 (ref)
     local v639 = v111.mouse_position:is_in_bounds(v634, l_vector_0(300, 40)) and not v51.use_element;
     local v640 = v51.use_element == v637;
-    local v641 = v29.preform_animation(v36("%s_hovered_alpha", v637), (not not v639 or v640) and 1 or 0);
-    local v642 = v29.measure_text("theme::font", v39, v635._name);
+    local v641 = v29.preform_animation(v635._cache_hovered_alpha, (not not v639 or v640) and 1 or 0);
+    local v642 = v635._name_measured;
+    if not v642 then
+        v642 = v29.measure_text("theme::font", v39, v635._name);
+        v635._name_measured = v642;
+    end;
     v50.render_text("theme::font", v634 + l_vector_0(0, 20 - v642.y / 2), (180 + 74 * v641) * v636 / 255, v39, v635._name);
     v642 = v51.binded_keys[v635._name].key;
     local v643 = v51.virtual_keys[v642];
@@ -2400,15 +2460,19 @@ end;
 local function v674(v666, v667, v668, v669)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), l_color_0 (ref), v50 (ref)
     local v670 = v111.mouse_position:is_in_bounds(v666, l_vector_0(300, 40)) and not v51.use_element;
-    local v671 = v29.preform_animation(v36("%s_hovered_alpha", v669), v670 and 1 or 0);
-    local _ = v29.preform_animation(v36("%s_active_alpha", v669), 20);
-    local v673 = v29.measure_text("theme::font", v39, v667._name);
+    local v671 = v29.preform_animation(v667._cache_hovered_alpha, v670 and 1 or 0);
+    local _ = v29.preform_animation(v667._cache_active_alpha, 20);
+    local v673 = v667._name_measured;
+    if not v673 then
+        v673 = v29.measure_text("theme::font", v39, v667._name);
+        v667._name_measured = v673;
+    end;
     v29.text("theme::font", v666 + l_vector_0(0, 20 - v673.y / 2), l_color_0(255, (180 + 74 * v671) * v668), v39, v667._name);
     v29.texture(v667.extands.icon.img, l_vector_0(v666.x + 300 - 30, v666.y), v667.extands.icon.size, l_color_0(255, 100):override(v668 * v671));
     v50.render_accent(v666 + l_vector_0(300 - 32 * v671, 10), v666 + l_vector_0(300 - 30 * v671, 30), v671, 1);
     if v670 and v111.is_left_pressed and not v51.fix_press then
         v51.fix_press = true;
-        v29.animation_cache[v36("%s_active_alpha", v669)] = 255;
+        v29.animation_cache[v667._cache_active_alpha] = 255;
         if v667.extands.to_call then
             v667.extands.to_call();
         end;
@@ -2418,10 +2482,14 @@ local function v686(v675, v676, v677, v678)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), l_color_0 (ref), v25 (ref), v50 (ref), v30 (ref)
     local v679 = v111.mouse_position:is_in_bounds(v675, l_vector_0(300, 60)) and not v51.use_element;
     local v680 = v51.use_element == v678;
-    local v681 = v29.preform_animation(v36("%s_hovered_alpha", v678), (not not v679 or v680) and 255 or 180);
-    local v682 = v29.measure_text("theme::font", v39, v676._name);
+    local v681 = v29.preform_animation(v676._cache_hovered_alpha, (not not v679 or v680) and 255 or 180);
+    local v682 = v676._name_measured;
+    if not v682 then
+        v682 = v29.measure_text("theme::font", v39, v676._name);
+        v676._name_measured = v682;
+    end;
     v29.text("theme::font", v675 + l_vector_0(0, 20 - v682.y / 2), l_color_0(255, v681 * v677), v39, v676._name);
-    local v683 = v29.preform_animation(v36("%s_used", v678), v680 and 1 or 0);
+    local v683 = v29.preform_animation(v676._cache_used, v680 and 1 or 0);
     local v684 = v29.measure_text("theme::font", v39, v676.value);
     v29.shadow(v675 + l_vector_0(20, 55), v675 + l_vector_0(20 + v684.x, 56), l_color_0(255, 10, 10, 255 * v683), 70);
     v29.text("theme::font", v675 + l_vector_0(20, 55 - v684.y / 2), l_color_0(255, v681 * v677), v39, v676.value);
@@ -2465,6 +2533,7 @@ do
     v51.render_main_window = function(v696)
         -- upvalues: v28 (ref), v111 (ref), v51 (ref), v50 (ref), v29 (ref), l_vector_0 (ref), l_color_0 (ref), v36 (ref), v25 (ref), v39 (ref), v30 (ref), v26 (ref), l_v694_0 (ref)
         local ok, err = pcall(function()
+
         v696:fade(v28.get_alpha());
         if v696._fade == 0 then
             return;
@@ -2485,8 +2554,12 @@ do
             local start_x = v696._position.x + v696._size.x / 2 - (v51.centered_tabs * 60 - 20) / 2;
             for v702 = 1, v700 do
                 local v703 = v51.tabs_list[v702];
-                local v704 = v36("ui::menu::tab_%s", v703._name);
-                assert(v703, v36("Failed to index %s", v704));
+                local v704 = v703._cache_id;
+                if not v704 then
+                    v704 = v36("ui::menu::tab_%s", v703._name);
+                    v703._cache_id = v704;
+                end
+                assert(v703, "Failed to index tab");
                 local v705 = v51.active_tab == v702;
                 local v706 = nil;
                 if not v703.is_lower then
@@ -2509,8 +2582,13 @@ do
                     };
                     for v710 = 1, #v703.tables do
                         local v711 = v703.tables[v710];
-                        local v712 = v36("%s::table_%s", v704, v711._name);
-                        assert(v711, v36("Failed to index %s", v712));
+                        local v712 = v711._cache_id;
+                        if not v712 then
+                            v712 = v36("%s::table_%s", v704, v711._name);
+                            v711._cache_id = v712;
+                            v711._cache_scrolldown = v36("%s_scrolldown", v712);
+                        end;
+                        assert(v711, "Failed to index table");
                         local v713 = v29.get_animation_value(v712) * v707;
                         local v714 = v711.is_right and 2 or 1;
                         local v715 = l_vector_0(v699[v714].x, v699[v714].y + v709[v714] - 50 * v708);
@@ -2525,6 +2603,7 @@ do
                             v51.hovered_table = "";
                         end;
                         local v719 = 1;
+                        if not v711.animate_name then v711.animate_name = 0 end;
                         if v51.get("menu_group_names") and v713 > 0 and not v51.use_element and v51.hovered_table ~= "" then
                             if v51.hovered_table ~= v712 then
                                 v719 = 0.2;
@@ -2536,7 +2615,8 @@ do
                             v711.animate_name = v29.do_animation(v711.animate_name, 0);
                         end;
                         if v711.animate_name > 0 then
-                            v29.text("theme::font", v715 + l_vector_0(30, -18), l_color_0(255, 180 * v713 * v711.animate_name), v39, v711._name);
+                            if not v51._static_vec_30_18 then v51._static_vec_30_18 = l_vector_0(30, -18) end
+                            v29.text("theme::font", v715 + v51._static_vec_30_18, l_color_0(255, 180 * v713 * v711.animate_name), v39, v711._name);
                         end;
                         local v720 = v711.start_scroll and v718;
                         v50.render_half_outline(v715, v717, v713);
@@ -2547,7 +2627,7 @@ do
                         if not v711.start_scroll then
                             v711.scroll_factor = 0;
                         end;
-                        local v721 = v29.preform_animation(v36("%s_scrolldown", v712), v711.scroll_factor, v39);
+                        local v721 = v29.preform_animation(v711._cache_scrolldown, v711.scroll_factor, v39);
                         if v711.start_scroll then
                             local v722 = (v717.y - v715.y) / v711.current_length;
                             local v723 = v711.max_length * v722;
@@ -2560,8 +2640,19 @@ do
                         v29.push_clip_rect(v715, v717, true);
                         for v726 = 1, #v711.elements do
                             local v727 = v711.elements[v726];
-                            local v728 = v36("%s::element_%s", v712, v727._name);
-                            assert(v727, v36("Failed to index %s", v728));
+                            local v728 = v727._cache_id;
+                            if not v728 then
+                                v728 = v36("%s::element_%s", v712, v727._name);
+                                v727._cache_id = v728;
+                                v727._cache_alpha = v36("%s_alpha", v728);
+                                v727._cache_alpha_table = v36("%s_alpha_in_table", v728);
+                                v727._cache_hovered_alpha = v36("%s_hovered_alpha", v728);
+                                v727._cache_active_alpha = v36("%s_active_alpha", v728);
+                                v727._cache_used = v36("%s_used", v728);
+                                v727._cache_color = v36("%s_color", v728);
+                                v727._cache_progress = v36("%s_progress", v728);
+                            end;
+                            assert(v727, "Failed to index element");
                             local v729 = l_vector_0(v715.x + 10, v715.y + v725 + v721);
                             if v727._type == 8 and v727.menu_size == 0 then
                                 v727.value = v26.wrap_text(v727.value, 300, "theme::font");
@@ -2569,13 +2660,10 @@ do
                                 v727.menu_size = v25.ceil(v730.y / 40);
                             end;
                             local v731 = v727.menu_size * 40;
-                            if v729:is_in_bounds(l_vector_0(v715.x, v715.y), l_vector_0(320, v716 - v731)) then
-                                local _ = v727.is_visible;
-                            end;
-                            local v733 = v29.preform_animation(v36("%s_alpha", v728), v727.is_visible and 1 or 0);
-                            local v734 = v729:is_in_bounds(l_vector_0(v715.x, v715.y), l_vector_0(320, v716 - v731));
-                            local v735 = v29.preform_animation(v36("%s_alpha_in_table", v728), (v734 and 1 or 0) * v713) * v733;
-                            if v735 > 0 then
+                            local v733 = v29.preform_animation(v727._cache_alpha, v727.is_visible and 1 or 0);
+                            local v734 = v729:is_in_bounds(v715, l_vector_0(320, v716 - v731));
+                            local v735 = v29.preform_animation(v727._cache_alpha_table, (v734 and 1 or 0) * v713) * v733;
+                            if v735 > 0.01 then
                                 local ok_el, err_el = pcall(l_v694_0[v727._type], v729, v727, v735, v728, v696);
                                 if not ok_el then
                                     print("ELEMENT CRASH! Type: " .. tostring(v727._type) .. " Name: " .. tostring(v727._name) .. " Error: " .. tostring(err_el))
@@ -2616,7 +2704,9 @@ do
     v51.handle_keybinds = function()
         -- upvalues: l_pairs_0 (ref), v51 (ref), v30 (ref), v39 (ref), l_error_0 (ref), v36 (ref)
         for v736, v737 in l_pairs_0(v51.binded_keys) do
-            if v737.key == 27 then
+            if v737.mode == "always" then
+                v737.value = true;
+            elseif v737.key == 27 then
                 v737.value = false;
             elseif v737.mode == "hold" then
                 v737.value = v30.is_virtual_key_pressed(v737.key);
@@ -2628,8 +2718,6 @@ do
                 if v737.last_key ~= v39 and not v30.is_virtual_key_pressed(v737.key) then
                     v737.last_key = v39;
                 end;
-            elseif v737.mode == "always" then
-                v737.value = true;
             else
                 l_error_0(v36("Failed to find mode for bind %s", v736));
             end;
@@ -2754,22 +2842,27 @@ local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     local panic_table = v51.create_table(gc_tab, "Controls", true, 2);
 
     v51.new("goon_corner_enabled", v51.create_checkbox, gc_table, "Enable Goon Corner", false);
-    v51.new("goon_corner_category", v51.create_list, gc_table, "Image Category", {"Goth", "E-Girl", "Anime"});
+    v51.new("goon_corner_focus_mode", v51.create_checkbox, gc_table, "Focus Mode (Hide when Alive)", false);
+    v51.new("goon_corner_category", v51.create_list, gc_table, "Image Category", {"All", "Goth", "White", "Asian", "Latina"});
+    v51.new("goon_corner_fit_mode", v51.create_list, gc_table, "Fitting Mode", {"Default", "Keep Aspect Ratio", "Blurred Background"});
     v51.new("goon_corner_time", v51.create_slider, gc_table, "Image Delay (s)", 1, 30, 5);
     v51.new("goon_corner_crosshair", v51.create_checkbox, gc_table, "Goon Crosshair Overlay", false);
     v51.new("goon_corner_crosshair_size", v51.create_slider, gc_table, "Crosshair Size", 10, 300, 50);
     v51.new("goon_corner_crosshair_alpha", v51.create_slider, gc_table, "Crosshair Opacity", 0, 255, 100);
 
-    v51.create_text(asmr_table, "goon_corner_asmr_track", "[Track: Goth Mommy ASMR]");
+
+    v51.new("goon_corner_asmr_track_select", v51.create_list, asmr_table, "Select Track", {"Don't Call Me Mommy (37m)", "Say it! Who's your mommy? (18m)"});
     v51.new("goon_corner_asmr_enabled", v51.create_checkbox, asmr_table, "Enable Goth ASMR", false);
     v51.new("goon_corner_asmr_pause", v51.create_checkbox, asmr_table, "Pause ASMR", false);
     v51.new("goon_corner_volume", v51.create_slider, asmr_table, "ASMR Volume", 0, 100, 50);
+    v51.new("goon_corner_asmr_game_volume_reduce", v51.create_slider, asmr_table, "Game Vol while Playing (%)", 0, 100, 100);
     v51.new("goon_corner_seek", v51.create_slider, asmr_table, "ASMR Seek (Sec)", 0, 2224, 0);
 
-    v51.new("goon_corner_boss_key", v51.create_keybind, panic_table, "Panic Key (Hide & Mute)");
+    v51.new("goon_corner_boss_key", v51.create_keybind, panic_table, "Panica Key (Hide & Mute)");
     v51.new("goon_corner_skip_key", v51.create_keybind, panic_table, "Instant Skip Key");
     v51.new("animation_speed", v51.create_slider, v758, "Animation speed", 1, 20, 12);
     local v759 = v51.create_table(v751, "Script", false, 4);
+
     v51.create_text(v759, "Resert explained", "If you experience some fps drops, \nyou can reset render cache or change performance mode");
     v51.new("reset_render", v51.create_button, v759, "Reset render cache", function()
         -- upvalues: v30 (ref), v64 (ref), v29 (ref), v311 (ref), v51 (ref), v154 (ref)
@@ -3222,6 +3315,7 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
     });
     v51.new("local_hurt_volume", v51.create_slider, v759, "Sound volume", 0, 100, 80);
     v51.new("weapons_sounds", v51.create_checkbox, v759, "Override weapons sounds");
+    v51.new("weapons_sounds_teammates", v51.create_checkbox, v759, "Apply to other players", false);
     v51.new("weapon_sound_pack", v51.create_list, v759, "Weapon Sound Pack", {
         [1] = "MW19 Custom", 
         [2] = "2018 Sounds"
@@ -4071,11 +4165,25 @@ v58.preform_overrides = function(v896)
     if v58.override_settings.safe_head then
         v51.references.pitch:override("Down");
         v51.references.yaw_modifier:override("Disabled");
+        v51.references.yaw_modifier_offset:override(0);
+        v51.references.yaw_offset:override(v58.manual_side * 90);
+        
+        local body_opts = v58.override_settings.body_options
+        if type(body_opts) == "table" then
+            local new_opts = {}
+            for i, v in ipairs(body_opts) do
+                if v ~= "Jitter" and v ~= "Randomize Jitter" then
+                    table.insert(new_opts, v)
+                end
+            end
+            v51.references.body_yaw_options:override(new_opts)
+        else
+            v51.references.body_yaw_options:override({})
+        end
     end;
 end;
 v58.preform_general = function(v900)
-    -- upvalues: v55 (ref), v51 (ref), v58 (ref), v39 (ref), v52 (ref)
-    local v901 = v55.disable_pitch or not v51.get("override_pitch");
+    local v901 = v55.disable_pitch or (not v51.get("override_pitch") and not v58.override_settings.safe_head);
     v51.references.pitch:override(v901 and "Disabled" or "Down");
     v901 = v55.disable_pitch or v51.get("override_yaw") == "None";
     v51.references.yaw:override(v901 and "Disabled" or "Backward");
@@ -4345,7 +4453,7 @@ v58.default_builder = function(v910)
             if safe_conditions[4] and threat and threat:is_alive() and not threat:is_dormant() then
                 local origin = local_player:get_origin()
                 local threat_origin = threat:get_origin()
-                local delta_z = origin.z - threat_origin.z
+                local delta_z = math.abs(origin.z - threat_origin.z)
                 local height_limit = v51.get("safe_head_height") or 25
                 
                 if delta_z >= height_limit then
@@ -4355,10 +4463,12 @@ v58.default_builder = function(v910)
         end
         
         if should_safe_head then
-        v58.override_settings.safe_head = true;
+            v58.override_settings.safe_head = true;
         else
             v58.override_settings.safe_head = nil;
         end
+    else
+        v58.override_settings.safe_head = nil;
     end
 
     if v51.get("avoid_backstab") then
@@ -4528,9 +4638,12 @@ v58.render_manuals = function()
     end;
 end;
 v58.defensive_switch = function()
-    -- upvalues: v51 (ref), v58 (ref), v39 (ref), v25 (ref)
-    if not v51.get_bind("Defensive snap") and not v58.did_hit_ground then
-        v51.references.hidden:override(v39);
+    if v58.override_settings.safe_head then
+        v51.references.hidden:override(false);
+        return;
+    end
+    if not v51.get_bind("Defensive snap") then
+        v51.references.hidden:override(false);
         return;
     else
         local v932 = v58.did_hit_ground and -2 or 0;
@@ -7293,62 +7406,133 @@ v74.on_local_hurt = function(v1366)
         end;
     end;
 end;
+local weapon_sounds_files = {
+    [40] = { -- SSG 08
+        ["MW19 Custom"] = "weap_cheytac_slmn_short_44k_mono.wav",
+        ["2018 Sounds"] = "SSG 08.wav",
+        orig_names = { "ssg08" }
+    },
+    [9] = { -- AWP
+        ["MW19 Custom"] = "AWP.wav",
+        ["2018 Sounds"] = "AWP.wav",
+        orig_names = { "awp" }
+    },
+    [38] = { -- SCAR-20
+        ["MW19 Custom"] = "SCAR-20.wav",
+        ["2018 Sounds"] = "SCAR-20.wav",
+        orig_names = { "scar20" }
+    },
+    [11] = { -- G3SG1
+        ["MW19 Custom"] = "G3SG1.wav",
+        ["2018 Sounds"] = "G3SG1.wav",
+        orig_names = { "g3sg1" }
+    },
+    [1] = { -- Desert Eagle
+        ["MW19 Custom"] = "weap_deserteagle_slmn.wav",
+        ["2018 Sounds"] = "Desert Eagle.wav",
+        orig_names = { "deagle" }
+    },
+    [64] = { -- R8 Revolver
+        ["MW19 Custom"] = "R8 Revolver.wav",
+        ["2018 Sounds"] = "R8 Revolver.wav",
+        orig_names = { "revolver" }
+    },
+    [3] = { -- Five-SeveN
+        ["MW19 Custom"] = "Five-SeveN.wav",
+        ["2018 Sounds"] = "Five-SeveN.wav",
+        orig_names = { "fiveseven" }
+    },
+    [30] = { -- Tec-9
+        ["MW19 Custom"] = "Tec-9.wav",
+        ["2018 Sounds"] = "Tec-9.wav",
+        orig_names = { "tec9" }
+    },
+    [61] = { -- USP-S
+        ["MW19 Custom"] = "weap_usps_sup_loud_44k_mono.wav",
+        ["2018 Sounds"] = "USP-S.wav",
+        orig_names = { "usp_silenced", "usp1" }
+    },
+    [4] = { -- Glock-18
+        ["MW19 Custom"] = "weap_glock_loud_44k_mono_v2.wav",
+        ["2018 Sounds"] = "weap_glock_loud_44k_mono_v2.wav",
+        orig_names = { "glock" }
+    },
+    [32] = { -- P2000
+        ["MW19 Custom"] = "weap_p2000_loud_44k_mono_v2.wav",
+        ["2018 Sounds"] = "weap_p2000_loud_44k_mono_v2.wav",
+        orig_names = { "hkp2000" }
+    }
+}
+
 v74.player_weapon = function()
-    -- upvalues: v52 (ref), v154 (ref), v36 (ref), v51 (ref)
-    local weapon = v52.local_player():get_player_weapon()
-    if not weapon then return end
-    local wep_info = weapon:get_weapon_info()
-    if wep_info and wep_info.weapon_type == 0 then return end
-    local v1371 = weapon:get_name();
-    local snd_name = v1371;
-    local vol_mult = 1.0;
-    if v51.get("weapon_sound_pack") == "MW19 Custom" then
-        if snd_name == "SSG 08" then
-            snd_name = "weap_cheytac_slmn_short_44k_mono"
-            vol_mult = 0.6;
-        elseif snd_name == "Desert Eagle" then
-            snd_name = "weap_deserteagle_slmn"
-        elseif snd_name == "USP-S" or snd_name == "USP-S Silenced" then
-            snd_name = "weap_usps_sup_loud_44k_mono"
-        end;
-    end;
-    if snd_name:lower():match("molotov") or snd_name:lower():match("grenade") or snd_name == "Flashbang" or snd_name == "C4 Explosive" or snd_name:lower():match("glock") or snd_name:lower():match("p2000") then return end
-    local sound_path = v36("MadrillaSounds/%s.wav", snd_name);
-    local final_vol = (v51.get("weapons_sounds_volume") / 100) * vol_mult;
-    v154.play_sound(sound_path, 0, 100, 4, 0);
-    v154.play_sound(sound_path, final_vol, 100, 0, 0);
 end;
+
 v74.manual_shoot = function(v1372)
-    -- upvalues: v74 (ref), v52 (ref), v51 (ref), v30 (ref)
-    v74.snd:call("Weapons1", "vol", 0.7);
-    if not v52.is_alive then
-        return;
-    elseif not v51.get("weapons_sounds") then
-        return;
-    else
-        local v1373 = v52.local_player():get_player_weapon();
-        if not v1373 then
-            return;
-        elseif v1373:get_weapon_info().is_revolver then
-            return;
-        else
-            if v1372.in_attack and v30.can_fire(v52.local_player()) and not v51.references.fake_duck:get() then
-                v74.player_weapon();
-            end;
-            v74.snd:call("Weapons1", "vol", 0);
-            return;
-        end;
-    end;
 end;
+
 v74.auto_fire = function()
-    -- upvalues: v51 (ref), v74 (ref)
-    if not v51.get("weapons_sounds") then
-        return;
-    else
-        v74.player_weapon();
-        return;
-    end;
 end;
+
+v49.attach("emit_sound", function(v94)
+    if not v51.get("weapons_sounds") then return end
+    
+    local local_player = entity.get_local_player()
+    if not local_player then return end
+    
+    local shooter = v94.entity
+    if not shooter or not shooter.get_player_weapon then return end
+    
+    local is_local = (shooter == local_player)
+    local apply_others = v51.get("weapons_sounds_teammates")
+    if not is_local and not apply_others then return end
+    
+    local weapon = shooter:get_player_weapon()
+    if not weapon then return end
+    
+    local wp_idx = weapon:get_weapon_index()
+    local wp_info = weapon_sounds_files[wp_idx]
+    if not wp_info then return end
+    
+    local snd = v94.sound_name:lower()
+    if snd:find("draw") or snd:find("clip") or snd:find("reload") or snd:find("bolt") or snd:find("zoom") or snd:find("slide") or snd:find("cock") or snd:find("prepare") or snd:find("side") or snd:find("pump") or snd:find("insert") or snd:find("silencer") or snd:find("deploy") or snd:find("pull") or snd:find("hammer") or snd:find("spin") or snd:find("click") then
+        return
+    end
+    
+    local matched = false
+    for _, pattern in ipairs(wp_info.orig_names) do
+        if snd:find(pattern, 1, true) then
+            matched = true
+            break
+        end
+    end
+    
+    if not matched then return end
+    
+    local pack = v51.get("weapon_sound_pack")
+    local filename = wp_info[pack]
+    if not filename then return end
+    
+    local sound_path = "MadrillaSounds/" .. filename
+    
+    local vol_mult = 1.0
+    if pack == "MW19 Custom" and wp_idx == 40 then
+        vol_mult = 0.6
+    end
+    
+    local final_vol = (v51.get("weapons_sounds_volume") / 100) * vol_mult
+    
+    if not is_local then
+        local dist = (local_player.origin - shooter.origin):length()
+        if dist > 2500 then
+            return
+        end
+        local dist_mult = 1.0 - (dist / 2500)
+        final_vol = final_vol * dist_mult
+    end
+    
+    v94.volume = 0
+    cvar.playvol:call(sound_path, final_vol)
+end, "lua::sounds::emit_sound")
 v315 = nil;
 v315 = {};
 v547 = function(v1374)
@@ -7493,7 +7677,7 @@ do
                     v49.attach("shutdown", v54.destroy, "lua::hitchance::destroy");
                     v311.add(v36("Welcome back %s. Last update was %s", common.get_username(), v46), v51.icons.open_check);
                     if _G.MADRILLA_UPDATE_AVAILABLE then
-                        v311.add(v36("Update %s is available on GitHub!", _G.MADRILLA_UPDATE_AVAILABLE), v51.icons.cloud);
+                        v311.add(v36("Update %s is available on Discord!", _G.MADRILLA_UPDATE_AVAILABLE), v51.icons.cloud);
                     end
                     v154.play_sound("MadrillaSounds/menu_load.wav", 1, 100, 0, 0);
                     return;
@@ -7788,462 +7972,1330 @@ end
 -- Use direct image links from Discord, Catbox, or other standard image hosts.
 local debug_status = "Loading URLs..."
 local urls_goth = {}
-local urls_egirl = {}
-local urls_anime = {}
-local goon_corner_urls = urls_goth
+local urls_white = {}
+local urls_asian = {}
+local urls_latina = {}
+local urls_all = {}
+
+local goon_corner_urls = urls_all
 local urls_loaded = false
 local total_images_viewed = 0
-local current_category = 1
+local current_category = "All"
+
+local image_aspects = {
+    ["asian_1.jpg"] = 0.5371376811594203,
+    ["asian_10.jpg"] = 0.5304292120435619,
+    ["asian_11.jpg"] = 0.5371376811594203,
+    ["asian_12.jpg"] = 0.5326666666666666,
+    ["asian_13.jpg"] = 0.7838827838827839,
+    ["asian_14.png"] = 1.7777777777777777,
+    ["asian_15.jpg"] = 0.5371376811594203,
+    ["asian_16.jpg"] = 0.61698956780924,
+    ["asian_17.jpg"] = 0.75,
+    ["asian_18.jpg"] = 0.7631336405529954,
+    ["asian_19.jpg"] = 1.8617200674536256,
+    ["asian_2.jpg"] = 1.8617200674536256,
+    ["asian_20.jpg"] = 0.532608695652174,
+    ["asian_21.jpg"] = 0.5240726124704025,
+    ["asian_22.jpg"] = 0.532608695652174,
+    ["asian_23.jpg"] = 0.5753756665050896,
+    ["asian_24.jpg"] = 1.5,
+    ["asian_25.jpg"] = 0.8448275862068966,
+    ["asian_26.png"] = 0.7411477411477412,
+    ["asian_27.jpg"] = 0.75,
+    ["asian_28.jpg"] = 0.75,
+    ["asian_29.jpg"] = 1.8647798742138364,
+    ["asian_3.jpg"] = 0.75,
+    ["asian_30.jpg"] = 0.75,
+    ["asian_31.jpg"] = 0.75,
+    ["asian_32.png"] = 1.7777777777777777,
+    ["asian_33.jpg"] = 0.5177514792899408,
+    ["asian_34.png"] = 2.0689655172413794,
+    ["asian_35.png"] = 1.7777777777777777,
+    ["asian_36.jpg"] = 0.5633802816901409,
+    ["asian_37.jpg"] = 0.532608695652174,
+    ["asian_38.jpg"] = 0.5371376811594203,
+    ["asian_39.jpg"] = 0.5630865484880083,
+    ["asian_4.jpg"] = 0.5332068311195446,
+    ["asian_40.jpg"] = 0.75,
+    ["asian_41.jpg"] = 0.757548032936871,
+    ["asian_42.jpg"] = 1.8775510204081634,
+    ["asian_43.jpg"] = 0.5326666666666666,
+    ["asian_44.jpg"] = 0.5371376811594203,
+    ["asian_45.jpg"] = 0.532608695652174,
+    ["asian_46.jpg"] = 0.5371376811594203,
+    ["asian_47.jpg"] = 0.75,
+    ["asian_48.jpg"] = 0.532608695652174,
+    ["asian_49.jpg"] = 0.75,
+    ["asian_5.jpg"] = 0.5926986399427344,
+    ["asian_50.jpg"] = 0.75,
+    ["asian_51.png"] = 0.5273865414710485,
+    ["asian_52.jpg"] = 0.75,
+    ["asian_53.jpg"] = 0.5200308166409862,
+    ["asian_54.jpg"] = 0.5371376811594203,
+    ["asian_55.jpg"] = 0.7485101311084624,
+    ["asian_56.webp"] = 0.75,
+    ["asian_57.jpg"] = 0.746824480369515,
+    ["asian_58.jpg"] = 0.75,
+    ["asian_59.jpg"] = 1.355081555834379,
+    ["asian_6.jpg"] = 2.0145985401459856,
+    ["asian_60.jpg"] = 0.75,
+    ["asian_61.jpg"] = 0.75,
+    ["asian_62.jpg"] = 0.75,
+    ["asian_63.jpg"] = 0.75,
+    ["asian_64.jpg"] = 0.75,
+    ["asian_65.jpg"] = 0.7494145199063232,
+    ["asian_66.jpg"] = 0.7494145199063232,
+    ["asian_67.jpg"] = 1.3333333333333333,
+    ["asian_68.jpg"] = 0.8023774145616642,
+    ["asian_69.jpg"] = 0.7496251874062968,
+    ["asian_7.jpg"] = 0.75,
+    ["asian_70.jpg"] = 0.75,
+    ["asian_71.jpg"] = 0.7496251874062968,
+    ["asian_72.jpg"] = 0.8126410835214447,
+    ["asian_73.jpg"] = 0.75,
+    ["asian_74.jpg"] = 0.5722278738555443,
+    ["asian_75.jpg"] = 0.532608695652174,
+    ["asian_76.jpg"] = 0.9056603773584906,
+    ["asian_77.jpg"] = 0.5371376811594203,
+    ["asian_78.jpg"] = 0.75,
+    ["asian_79.jpg"] = 0.5296411856474259,
+    ["asian_8.jpg"] = 0.75,
+    ["asian_80.jpg"] = 0.7570754716981132,
+    ["asian_81.jpg"] = 0.5380116959064327,
+    ["asian_82.jpg"] = 0.5630070308274743,
+    ["asian_83.jpg"] = 0.75,
+    ["asian_84.jpg"] = 1.8775510204081634,
+    ["asian_85.jpg"] = 0.748046875,
+    ["asian_86.jpg"] = 0.532608695652174,
+    ["asian_87.jpg"] = 1.3333333333333333,
+    ["asian_88.png"] = 1.4529750479846448,
+    ["asian_89.jpg"] = 1.0,
+    ["asian_9.jpg"] = 0.5317028985507246,
+    ["asian_90.jpg"] = 0.5371376811594203,
+    ["asian_91.png"] = 1.7777777777777777,
+    ["asian_92.jpg"] = 1.3485342019543973,
+    ["asian_93.jpg"] = 0.5341796875,
+    ["asian_94.jpg"] = 0.75,
+    ["asian_95.jpg"] = 0.5404699738903395,
+    ["asian_96.jpg"] = 0.529891304347826,
+    ["goth_1.jpg"] = 1.0,
+    ["goth_10.jpg"] = 0.9937888198757764,
+    ["goth_100.jpg"] = 0.75,
+    ["goth_101.jpg"] = 0.75,
+    ["goth_102.jpg"] = 0.75,
+    ["goth_103.jpg"] = 0.75,
+    ["goth_104.jpg"] = 0.75,
+    ["goth_105.jpg"] = 0.75,
+    ["goth_106.jpg"] = 0.75,
+    ["goth_107.jpg"] = 0.75,
+    ["goth_108.jpg"] = 0.75,
+    ["goth_109.jpg"] = 0.75,
+    ["goth_11.jpg"] = 0.75,
+    ["goth_110.jpg"] = 0.75,
+    ["goth_111.jpg"] = 1.3333333333333333,
+    ["goth_112.jpg"] = 0.6316964285714286,
+    ["goth_113.jpg"] = 0.75,
+    ["goth_114.jpg"] = 0.75,
+    ["goth_115.jpg"] = 0.75,
+    ["goth_116.jpg"] = 0.75,
+    ["goth_117.jpg"] = 0.75,
+    ["goth_118.jpg"] = 0.75,
+    ["goth_119.jpg"] = 1.3333333333333333,
+    ["goth_12.jpg"] = 0.75,
+    ["goth_120.jpg"] = 0.75,
+    ["goth_121.jpg"] = 0.75,
+    ["goth_122.jpg"] = 0.75,
+    ["goth_123.jpg"] = 0.75,
+    ["goth_124.jpg"] = 0.75,
+    ["goth_125.jpg"] = 0.75,
+    ["goth_126.jpg"] = 0.75,
+    ["goth_127.jpg"] = 1.3333333333333333,
+    ["goth_128.jpg"] = 0.75,
+    ["goth_129.jpg"] = 0.75,
+    ["goth_13.png"] = 0.75,
+    ["goth_130.jpg"] = 0.75,
+    ["goth_131.jpg"] = 1.3333333333333333,
+    ["goth_132.jpg"] = 0.75,
+    ["goth_133.jpg"] = 1.3333333333333333,
+    ["goth_134.jpg"] = 0.7496296296296296,
+    ["goth_135.jpg"] = 0.7503703703703704,
+    ["goth_136.jpeg"] = 0.7750484809308339,
+    ["goth_137.jpg"] = 1.2052730696798493,
+    ["goth_138.jpg"] = 1.054582904222451,
+    ["goth_139.jpg"] = 0.8344671201814059,
+    ["goth_14.png"] = 0.75,
+    ["goth_140.jpg"] = 0.7490234375,
+    ["goth_141.jpg"] = 0.6666666666666666,
+    ["goth_142.jpg"] = 0.6665509460163166,
+    ["goth_143.jpg"] = 0.6666666666666666,
+    ["goth_144.jpg"] = 0.6666666666666666,
+    ["goth_145.jpg"] = 0.6666666666666666,
+    ["goth_146.jpg"] = 0.6666666666666666,
+    ["goth_147.jpg"] = 0.6666666666666666,
+    ["goth_148.jpg"] = 0.5630383711824589,
+    ["goth_149.jpg"] = 0.75,
+    ["goth_15.jpg"] = 0.590625,
+    ["goth_150.jpg"] = 0.8017817371937639,
+    ["goth_151.jpg"] = 0.6683154712833196,
+    ["goth_152.png"] = 0.6488888888888888,
+    ["goth_153.png"] = 0.75,
+    ["goth_154.png"] = 0.75,
+    ["goth_155.jpg"] = 0.75,
+    ["goth_156.jpg"] = 0.75,
+    ["goth_157.jpg"] = 0.75,
+    ["goth_158.jpg"] = 0.75,
+    ["goth_159.jpg"] = 0.75,
+    ["goth_16.jpg"] = 0.59921875,
+    ["goth_160.jpg"] = 1.4089157952669236,
+    ["goth_161.jpg"] = 0.694921875,
+    ["goth_162.jpg"] = 0.76640625,
+    ["goth_163.jpg"] = 0.846875,
+    ["goth_164.jpg"] = 1.3333333333333333,
+    ["goth_165.jpg"] = 0.737109375,
+    ["goth_166.jpg"] = 0.5628847845206685,
+    ["goth_167.jpg"] = 0.7408363448631905,
+    ["goth_168.png"] = 1.4120553359683794,
+    ["goth_169.png"] = 0.7841796875,
+    ["goth_17.jpg"] = 0.59609375,
+    ["goth_170.png"] = 1.3333333333333333,
+    ["goth_171.png"] = 0.75,
+    ["goth_172.png"] = 0.7529411764705882,
+    ["goth_173.png"] = 0.75,
+    ["goth_174.png"] = 0.75,
+    ["goth_175.png"] = 1.3333333333333333,
+    ["goth_176.png"] = 0.6352941176470588,
+    ["goth_177.jpg"] = 0.920863309352518,
+    ["goth_178.jpg"] = 0.5686666666666667,
+    ["goth_179.jpg"] = 0.74921875,
+    ["goth_18.jpg"] = 0.6669921875,
+    ["goth_180.jpg"] = 0.75,
+    ["goth_181.png"] = 0.7420435510887772,
+    ["goth_182.png"] = 0.75,
+    ["goth_183.jpg"] = 0.5625,
+    ["goth_184.png"] = 0.6683168316831684,
+    ["goth_185.png"] = 0.6683168316831684,
+    ["goth_186.png"] = 0.9833984375,
+    ["goth_187.jpg"] = 0.75,
+    ["goth_188.jpg"] = 0.75,
+    ["goth_189.jpg"] = 0.75,
+    ["goth_19.jpg"] = 0.75,
+    ["goth_190.png"] = 0.66650390625,
+    ["goth_191.png"] = 0.6683168316831684,
+    ["goth_192.png"] = 0.75,
+    ["goth_193.png"] = 0.6987735566856117,
+    ["goth_194.jpg"] = 0.6249618553555081,
+    ["goth_195.jpeg"] = 0.7497886728655959,
+    ["goth_196.png"] = 0.75,
+    ["goth_197.png"] = 0.75,
+    ["goth_198.jpg"] = 0.5729632945389436,
+    ["goth_199.png"] = 0.579136690647482,
+    ["goth_2.jpeg"] = 0.4930555555555556,
+    ["goth_20.jpg"] = 0.5620608899297423,
+    ["goth_200.jpg"] = 0.6810650887573965,
+    ["goth_201.png"] = 0.7485294117647059,
+    ["goth_202.png"] = 0.76806640625,
+    ["goth_203.jpg"] = 1.249757986447241,
+    ["goth_204.jpg"] = 1.3588110403397027,
+    ["goth_205.jpg"] = 0.7625,
+    ["goth_206.png"] = 1.3333333333333333,
+    ["goth_207.jpg"] = 0.5656660412757973,
+    ["goth_208.jpg"] = 0.575107296137339,
+    ["goth_209.jpg"] = 0.6667251667251667,
+    ["goth_21.jpg"] = 0.5621761658031088,
+    ["goth_210.jpeg"] = 0.7358490566037735,
+    ["goth_211.png"] = 0.7829457364341085,
+    ["goth_212.jpg"] = 0.75,
+    ["goth_213.jpg"] = 0.75,
+    ["goth_214.jpg"] = 0.6372498717290919,
+    ["goth_215.jpg"] = 0.8132022471910112,
+    ["goth_216.jpg"] = 0.7282944028206259,
+    ["goth_217.jpg"] = 0.75,
+    ["goth_218.jpg"] = 0.703514739229025,
+    ["goth_219.jpg"] = 0.7313705583756345,
+    ["goth_22.png"] = 0.5717472118959108,
+    ["goth_220.jpg"] = 0.7880935506732814,
+    ["goth_221.jpg"] = 0.75,
+    ["goth_222.png"] = 0.75,
+    ["goth_223.jpg"] = 0.439469320066335,
+    ["goth_224.png"] = 1.3349814585908528,
+    ["goth_225.jpg"] = 0.8689492325855962,
+    ["goth_226.png"] = 0.69287109375,
+    ["goth_227.png"] = 0.69921875,
+    ["goth_228.jpg"] = 1.3544973544973544,
+    ["goth_229.jpg"] = 0.80078125,
+    ["goth_23.jpg"] = 0.75,
+    ["goth_230.jpg"] = 0.75,
+    ["goth_231.jpg"] = 0.7505863956215794,
+    ["goth_232.jpg"] = 0.5625,
+    ["goth_233.jpg"] = 0.5625,
+    ["goth_234.png"] = 1.0169491525423728,
+    ["goth_235.jpeg"] = 0.8399138549892319,
+    ["goth_236.jpg"] = 1.37421875,
+    ["goth_237.jpg"] = 1.3349814585908528,
+    ["goth_238.png"] = 0.5684931506849316,
+    ["goth_239.jpg"] = 0.7513927576601671,
+    ["goth_24.jpg"] = 0.75634765625,
+    ["goth_240.jpg"] = 0.7513927576601671,
+    ["goth_241.jpg"] = 0.6140724946695096,
+    ["goth_242.jpg"] = 0.7531380753138075,
+    ["goth_243.jpg"] = 0.7534246575342466,
+    ["goth_244.jpg"] = 0.7531380753138075,
+    ["goth_245.jpg"] = 0.7554206418039896,
+    ["goth_246.jpg"] = 0.6891541255838091,
+    ["goth_247.jpg"] = 0.9937065253395164,
+    ["goth_248.jpg"] = 0.741267787839586,
+    ["goth_249.jpg"] = 0.9171507184347294,
+    ["goth_25.jpg"] = 1.5303571428571427,
+    ["goth_250.jpg"] = 1.0,
+    ["goth_251.jpg"] = 0.759375,
+    ["goth_252.jpg"] = 1.3333333333333333,
+    ["goth_253.jpg"] = 0.5630498533724341,
+    ["goth_254.png"] = 0.7176308539944903,
+    ["goth_255.png"] = 0.6117247238742566,
+    ["goth_256.png"] = 1.1216350947158524,
+    ["goth_257.jpeg"] = 0.7551127425275301,
+    ["goth_258.webp"] = 0.5648720211827007,
+    ["goth_259.webp"] = 0.7489597780859917,
+    ["goth_26.png"] = 1.0,
+    ["goth_260.jpg"] = 1.82225656877898,
+    ["goth_261.jpg"] = 0.5625,
+    ["goth_262.jpg"] = 0.72578125,
+    ["goth_263.jpg"] = 0.8013355592654424,
+    ["goth_264.jpg"] = 0.825,
+    ["goth_265.jpg"] = 0.771484375,
+    ["goth_266.jpg"] = 0.8486328125,
+    ["goth_267.jpg"] = 0.7632911392405063,
+    ["goth_268.jpg"] = 0.5625,
+    ["goth_269.png"] = 0.5705996131528046,
+    ["goth_27.jpg"] = 0.75,
+    ["goth_270.png"] = 0.5629770992366412,
+    ["goth_271.png"] = 0.7507820646506778,
+    ["goth_272.png"] = 0.7507820646506778,
+    ["goth_273.png"] = 0.7507820646506778,
+    ["goth_274.png"] = 0.75,
+    ["goth_275.png"] = 0.75,
+    ["goth_276.png"] = 0.75,
+    ["goth_277.png"] = 0.9262435677530018,
+    ["goth_278.png"] = 0.7535321821036107,
+    ["goth_279.jpg"] = 0.75,
+    ["goth_28.jpg"] = 0.75,
+    ["goth_280.jpg"] = 0.7468571428571429,
+    ["goth_281.png"] = 0.75,
+    ["goth_282.png"] = 0.75,
+    ["goth_283.png"] = 0.8441814595660749,
+    ["goth_284.png"] = 0.7591687041564792,
+    ["goth_285.jpg"] = 0.75,
+    ["goth_286.jpg"] = 1.8091872791519434,
+    ["goth_287.jpg"] = 0.709819247679531,
+    ["goth_288.jpg"] = 0.7872195785180149,
+    ["goth_289.png"] = 0.94921875,
+    ["goth_29.jpg"] = 0.7868852459016393,
+    ["goth_290.jpg"] = 0.6346666666666667,
+    ["goth_291.jpg"] = 0.7609375,
+    ["goth_292.png"] = 0.75,
+    ["goth_293.png"] = 0.75,
+    ["goth_294.png"] = 1.8618181818181818,
+    ["goth_295.jpg"] = 0.7533843437316068,
+    ["goth_296.jpg"] = 0.75,
+    ["goth_297.jpg"] = 0.75,
+    ["goth_298.jpg"] = 0.7501221299462628,
+    ["goth_299.jpg"] = 0.7501620220349967,
+    ["goth_3.jpg"] = 0.49314692982456143,
+    ["goth_30.jpg"] = 1.3306666666666667,
+    ["goth_300.jpg"] = 0.75,
+    ["goth_301.jpg"] = 0.75,
+    ["goth_302.jpg"] = 0.7761685319289006,
+    ["goth_303.png"] = 0.75,
+    ["goth_304.jpg"] = 0.75,
+    ["goth_305.png"] = 0.75546875,
+    ["goth_306.jpg"] = 0.7428571428571429,
+    ["goth_307.webp"] = 0.75,
+    ["goth_308.jpg"] = 0.75,
+    ["goth_309.jpg"] = 1.3333333333333333,
+    ["goth_31.jpg"] = 1.3306666666666667,
+    ["goth_310.jpg"] = 0.6676557863501483,
+    ["goth_311.jpg"] = 0.8210306406685237,
+    ["goth_312.jpg"] = 1.3333333333333333,
+    ["goth_313.jpg"] = 1.3333333333333333,
+    ["goth_314.jpg"] = 0.7950101146325017,
+    ["goth_315.jpg"] = 0.7955465587044535,
+    ["goth_316.jpg"] = 0.7761685319289006,
+    ["goth_317.jpg"] = 0.5676905574516496,
+    ["goth_318.jpg"] = 0.6098294884653962,
+    ["goth_319.jpg"] = 0.6033797216699801,
+    ["goth_32.jpg"] = 0.7506527415143603,
+    ["goth_320.jpg"] = 0.8342939481268011,
+    ["goth_321.jpg"] = 0.5625,
+    ["goth_322.jpg"] = 1.0362694300518134,
+    ["goth_323.png"] = 0.75,
+    ["goth_324.png"] = 0.6507936507936508,
+    ["goth_325.jpg"] = 0.75,
+    ["goth_326.webp"] = 0.75,
+    ["goth_327.png"] = 0.78515625,
+    ["goth_328.png"] = 0.75,
+    ["goth_329.jpg"] = 0.94921875,
+    ["goth_33.jpg"] = 1.875,
+    ["goth_330.webp"] = 0.75,
+    ["goth_331.jpg"] = 0.7391304347826086,
+    ["goth_332.jpeg"] = 0.75,
+    ["goth_333.jpg"] = 0.38203125,
+    ["goth_334.jpg"] = 0.70625,
+    ["goth_335.png"] = 0.712890625,
+    ["goth_336.jpg"] = 0.75,
+    ["goth_337.jpg"] = 0.5163015792154865,
+    ["goth_338.jpg"] = 0.8595393801535399,
+    ["goth_339.jpg"] = 0.75,
+    ["goth_34.jpg"] = 0.75,
+    ["goth_340.jpg"] = 0.75,
+    ["goth_341.png"] = 1.0,
+    ["goth_342.png"] = 0.669260700389105,
+    ["goth_343.jpg"] = 0.749609375,
+    ["goth_344.jpg"] = 1.7827298050139275,
+    ["goth_345.jpg"] = 1.3333333333333333,
+    ["goth_346.jpg"] = 0.8006666666666666,
+    ["goth_347.jpg"] = 0.8006666666666666,
+    ["goth_348.jpg"] = 0.8006666666666666,
+    ["goth_349.png"] = 0.7502930832356389,
+    ["goth_35.jpg"] = 0.8483606557377049,
+    ["goth_350.jpg"] = 0.75,
+    ["goth_351.jpg"] = 0.75,
+    ["goth_352.jpg"] = 0.5625,
+    ["goth_353.jpg"] = 0.5625,
+    ["goth_354.jpg"] = 0.75,
+    ["goth_355.webp"] = 1.3793103448275863,
+    ["goth_356.jpg"] = 0.75,
+    ["goth_357.png"] = 0.8221476510067114,
+    ["goth_358.jpg"] = 1.297029702970297,
+    ["goth_359.png"] = 0.6279296875,
+    ["goth_36.jpg"] = 0.751503006012024,
+    ["goth_360.png"] = 1.61101243339254,
+    ["goth_361.jpg"] = 0.80078125,
+    ["goth_362.jpg"] = 0.80078125,
+    ["goth_363.jpg"] = 0.5625,
+    ["goth_364.jpg"] = 0.8529118136439268,
+    ["goth_365.jpg"] = 0.75,
+    ["goth_366.jpg"] = 0.75,
+    ["goth_367.jpg"] = 0.75,
+    ["goth_368.jpg"] = 0.80078125,
+    ["goth_369.jpg"] = 1.2158590308370043,
+    ["goth_37.jpg"] = 0.751503006012024,
+    ["goth_370.png"] = 0.63046875,
+    ["goth_371.png"] = 0.7419859265050821,
+    ["goth_372.png"] = 0.8598726114649682,
+    ["goth_373.png"] = 0.653125,
+    ["goth_374.png"] = 1.296518607442977,
+    ["goth_375.png"] = 0.721875,
+    ["goth_376.png"] = 0.75048828125,
+    ["goth_377.jpeg"] = 0.7266666666666667,
+    ["goth_378.png"] = 0.5625,
+    ["goth_379.jpg"] = 0.75,
+    ["goth_38.jpg"] = 0.7836734693877551,
+    ["goth_380.jpg"] = 1.0,
+    ["goth_381.png"] = 0.75,
+    ["goth_382.png"] = 0.75,
+    ["goth_383.png"] = 0.75,
+    ["goth_384.png"] = 0.7342452369320958,
+    ["goth_385.png"] = 0.75,
+    ["goth_386.png"] = 1.0551262235960845,
+    ["goth_387.jpg"] = 0.75,
+    ["goth_388.jpg"] = 0.74921875,
+    ["goth_389.jpg"] = 0.75,
+    ["goth_39.jpg"] = 0.7836734693877551,
+    ["goth_390.jpg"] = 0.75,
+    ["goth_391.jpg"] = 0.75,
+    ["goth_392.jpg"] = 0.75,
+    ["goth_393.jpg"] = 0.75,
+    ["goth_394.jpg"] = 0.75,
+    ["goth_395.jpg"] = 0.74921875,
+    ["goth_396.jpg"] = 0.74921875,
+    ["goth_397.jpg"] = 1.0137741046831956,
+    ["goth_398.png"] = 0.8891666666666667,
+    ["goth_399.jpg"] = 0.7563176895306859,
+    ["goth_4.png"] = 0.75,
+    ["goth_40.jpg"] = 0.7506527415143603,
+    ["goth_400.png"] = 0.7520661157024794,
+    ["goth_401.png"] = 0.5551181102362205,
+    ["goth_402.png"] = 0.5065274151436031,
+    ["goth_403.jpg"] = 0.57734375,
+    ["goth_404.jpg"] = 0.56171875,
+    ["goth_405.jpg"] = 0.62890625,
+    ["goth_406.jpg"] = 0.7070101857399641,
+    ["goth_407.png"] = 0.75,
+    ["goth_408.png"] = 0.7292370020256583,
+    ["goth_409.png"] = 0.8695652173913043,
+    ["goth_41.jpg"] = 0.7506527415143603,
+    ["goth_410.png"] = 0.8801955990220048,
+    ["goth_411.jpg"] = 0.8328125,
+    ["goth_412.png"] = 0.75,
+    ["goth_413.png"] = 0.8,
+    ["goth_414.jpg"] = 0.75,
+    ["goth_415.jpg"] = 1.3333333333333333,
+    ["goth_416.png"] = 0.601956745623069,
+    ["goth_417.png"] = 1.0,
+    ["goth_418.png"] = 1.0,
+    ["goth_419.jpeg"] = 0.7717206132879046,
+    ["goth_42.jpg"] = 0.7836734693877551,
+    ["goth_420.png"] = 0.75,
+    ["goth_421.png"] = 1.3333333333333333,
+    ["goth_422.png"] = 0.7225,
+    ["goth_423.jpg"] = 0.74921875,
+    ["goth_424.jpg"] = 0.74921875,
+    ["goth_425.png"] = 0.56298828125,
+    ["goth_426.png"] = 0.75,
+    ["goth_427.jpg"] = 1.3917525773195876,
+    ["goth_428.png"] = 0.75,
+    ["goth_429.jpg"] = 0.8,
+    ["goth_43.jpg"] = 0.7876923076923077,
+    ["goth_430.png"] = 0.8,
+    ["goth_431.jpg"] = 0.7502930832356389,
+    ["goth_432.jpg"] = 0.7511737089201878,
+    ["goth_433.jpg"] = 0.7546875,
+    ["goth_434.jpg"] = 0.75,
+    ["goth_435.jpg"] = 1.3333333333333333,
+    ["goth_436.jpg"] = 0.8583984375,
+    ["goth_437.jpg"] = 0.75,
+    ["goth_438.jpg"] = 0.75,
+    ["goth_439.jpg"] = 0.7509554140127389,
+    ["goth_44.jpg"] = 0.7901234567901234,
+    ["goth_440.jpg"] = 0.92626953125,
+    ["goth_441.jpg"] = 0.75,
+    ["goth_442.png"] = 1.3333333333333333,
+    ["goth_443.png"] = 0.75,
+    ["goth_444.png"] = 0.7079646017699115,
+    ["goth_445.jpg"] = 0.8,
+    ["goth_446.webp"] = 0.7494145199063232,
+    ["goth_447.png"] = 0.8030753968253969,
+    ["goth_448.png"] = 0.8254397834912043,
+    ["goth_449.png"] = 0.8081896551724138,
+    ["goth_45.jpg"] = 0.7506527415143603,
+    ["goth_450.jpg"] = 1.105424769703173,
+    ["goth_451.webp"] = 0.6514954486345904,
+    ["goth_452.png"] = 0.9933774834437086,
+    ["goth_453.jpg"] = 0.5461956521739131,
+    ["goth_454.jpg"] = 0.75,
+    ["goth_455.jpg"] = 0.75,
+    ["goth_456.jpg"] = 0.5625,
+    ["goth_457.jpg"] = 0.5634057971014492,
+    ["goth_458.jpg"] = 0.5634057971014492,
+    ["goth_459.jpg"] = 0.5634057971014492,
+    ["goth_46.jpg"] = 0.7506527415143603,
+    ["goth_460.jpg"] = 0.5634057971014492,
+    ["goth_461.jpg"] = 0.5634057971014492,
+    ["goth_462.jpg"] = 0.5634057971014492,
+    ["goth_463.jpg"] = 0.5634057971014492,
+    ["goth_464.jpg"] = 0.5634057971014492,
+    ["goth_465.jpg"] = 0.5634057971014492,
+    ["goth_466.jpg"] = 0.5634057971014492,
+    ["goth_467.jpg"] = 0.75,
+    ["goth_468.jpg"] = 0.75,
+    ["goth_469.jpg"] = 0.75,
+    ["goth_47.jpg"] = 0.75,
+    ["goth_470.jpg"] = 0.75,
+    ["goth_471.jpg"] = 0.75,
+    ["goth_472.jpg"] = 0.75,
+    ["goth_473.jpg"] = 1.3333333333333333,
+    ["goth_48.jpg"] = 0.75,
+    ["goth_49.jpg"] = 1.334106728538283,
+    ["goth_5.png"] = 0.75,
+    ["goth_50.jpg"] = 1.334106728538283,
+    ["goth_51.jpg"] = 0.75,
+    ["goth_52.jpg"] = 0.75,
+    ["goth_53.jpg"] = 0.75,
+    ["goth_54.jpg"] = 0.75,
+    ["goth_55.jpg"] = 1.3333333333333333,
+    ["goth_56.jpg"] = 0.75,
+    ["goth_57.jpg"] = 1.3333333333333333,
+    ["goth_58.jpg"] = 0.75,
+    ["goth_59.jpg"] = 0.75,
+    ["goth_6.png"] = 0.75,
+    ["goth_60.jpg"] = 0.75,
+    ["goth_61.jpg"] = 0.75,
+    ["goth_62.jpg"] = 0.75,
+    ["goth_63.jpg"] = 0.75,
+    ["goth_64.jpg"] = 0.75,
+    ["goth_65.jpg"] = 0.75,
+    ["goth_66.jpg"] = 1.3333333333333333,
+    ["goth_67.jpg"] = 0.75,
+    ["goth_68.jpg"] = 1.3333333333333333,
+    ["goth_69.jpg"] = 0.75,
+    ["goth_7.jpg"] = 0.537109375,
+    ["goth_70.jpg"] = 0.75,
+    ["goth_71.jpg"] = 0.75,
+    ["goth_72.jpg"] = 0.75,
+    ["goth_73.jpg"] = 0.75,
+    ["goth_74.jpg"] = 0.75,
+    ["goth_75.jpg"] = 1.3333333333333333,
+    ["goth_76.jpg"] = 0.75,
+    ["goth_77.jpg"] = 0.75,
+    ["goth_78.jpg"] = 1.3333333333333333,
+    ["goth_79.jpg"] = 0.75,
+    ["goth_8.png"] = 0.6559734513274337,
+    ["goth_80.jpg"] = 1.3333333333333333,
+    ["goth_81.jpg"] = 0.75,
+    ["goth_82.jpg"] = 0.75,
+    ["goth_83.jpg"] = 0.75,
+    ["goth_84.jpg"] = 0.75,
+    ["goth_85.jpg"] = 0.75,
+    ["goth_86.jpg"] = 0.75,
+    ["goth_87.jpg"] = 0.75,
+    ["goth_88.jpg"] = 0.75,
+    ["goth_89.jpg"] = 0.75,
+    ["goth_9.jpg"] = 0.750733137829912,
+    ["goth_90.jpg"] = 1.3333333333333333,
+    ["goth_91.jpg"] = 1.3333333333333333,
+    ["goth_92.jpg"] = 0.75,
+    ["goth_93.jpg"] = 1.3333333333333333,
+    ["goth_94.jpg"] = 0.75,
+    ["goth_95.jpg"] = 0.75,
+    ["goth_96.jpg"] = 1.3333333333333333,
+    ["goth_97.jpg"] = 0.75,
+    ["goth_98.jpg"] = 0.75,
+    ["goth_99.jpg"] = 0.75,
+    ["latina_1.jpg"] = 0.75,
+    ["latina_10.jpg"] = 0.7671404682274248,
+    ["latina_11.jpg"] = 0.7491830065359477,
+    ["latina_12.jpg"] = 0.75,
+    ["latina_13.jpg"] = 0.75,
+    ["latina_14.jpg"] = 0.7491830065359477,
+    ["latina_15.jpg"] = 0.7491830065359477,
+    ["latina_16.jpg"] = 0.75,
+    ["latina_17.jpg"] = 0.7491830065359477,
+    ["latina_18.jpg"] = 0.7491830065359477,
+    ["latina_19.jpg"] = 0.7491830065359477,
+    ["latina_2.jpg"] = 0.75,
+    ["latina_20.jpg"] = 0.75,
+    ["latina_21.jpg"] = 0.7491830065359477,
+    ["latina_22.jpg"] = 1.0,
+    ["latina_23.jpg"] = 0.7491830065359477,
+    ["latina_24.jpg"] = 0.75,
+    ["latina_25.jpg"] = 0.7491830065359477,
+    ["latina_26.jpg"] = 0.75,
+    ["latina_27.jpg"] = 0.75,
+    ["latina_28.jpg"] = 0.75,
+    ["latina_29.jpg"] = 0.7491830065359477,
+    ["latina_3.jpg"] = 0.7491830065359477,
+    ["latina_30.jpg"] = 0.7491830065359477,
+    ["latina_31.jpg"] = 0.7491830065359477,
+    ["latina_32.jpg"] = 0.7491830065359477,
+    ["latina_33.jpg"] = 0.7491830065359477,
+    ["latina_34.jpg"] = 0.7491830065359477,
+    ["latina_4.jpg"] = 0.7491830065359477,
+    ["latina_5.jpg"] = 0.75,
+    ["latina_6.jpg"] = 0.75,
+    ["latina_7.jpg"] = 0.75,
+    ["latina_8.jpg"] = 0.7491830065359477,
+    ["latina_9.jpg"] = 0.75,
+    ["white_1.png"] = 0.8223872073101085,
+    ["white_10.jpg"] = 0.75,
+    ["white_11.jpg"] = 0.75,
+    ["white_12.jpeg"] = 0.720157255182273,
+    ["white_13.png"] = 0.5462184873949579,
+    ["white_14.jpg"] = 0.75,
+    ["white_15.png"] = 0.75,
+    ["white_16.jpg"] = 1.3333333333333333,
+    ["white_17.jpg"] = 0.7499367248797773,
+    ["white_18.jpg"] = 0.75,
+    ["white_19.jpg"] = 0.6666666666666666,
+    ["white_2.jpg"] = 0.8938589840788476,
+    ["white_20.jpg"] = 0.5635755258126195,
+    ["white_21.jpg"] = 0.5608943862987631,
+    ["white_22.jpg"] = 0.75,
+    ["white_23.jpg"] = 0.66650390625,
+    ["white_24.png"] = 0.6666666666666666,
+    ["white_25.jpg"] = 0.75,
+    ["white_26.jpg"] = 0.75,
+    ["white_27.jpg"] = 0.75,
+    ["white_28.jpg"] = 0.7694444444444445,
+    ["white_29.jpg"] = 1.1991084695393759,
+    ["white_3.jpg"] = 0.6722222222222223,
+    ["white_30.jpg"] = 0.75,
+    ["white_31.jpg"] = 0.66650390625,
+    ["white_32.jpg"] = 1.3333333333333333,
+    ["white_33.jpg"] = 0.7498835584536563,
+    ["white_34.jpg"] = 0.75,
+    ["white_35.png"] = 0.7527405602923264,
+    ["white_36.jpg"] = 0.7500501102425335,
+    ["white_37.jpg"] = 0.749,
+    ["white_38.png"] = 0.7548780487804878,
+    ["white_39.jpg"] = 1.5,
+    ["white_4.jpg"] = 0.75,
+    ["white_40.png"] = 0.751219512195122,
+    ["white_41.jpg"] = 0.75,
+    ["white_42.jpg"] = 0.5616960457360648,
+    ["white_43.jpg"] = 0.5625,
+    ["white_44.jpg"] = 1.5,
+    ["white_45.jpg"] = 0.75,
+    ["white_46.jpg"] = 0.7993338884263114,
+    ["white_47.jpg"] = 0.5625,
+    ["white_48.jpg"] = 0.75,
+    ["white_49.png"] = 0.7667731629392971,
+    ["white_5.jpg"] = 0.5627684964200478,
+    ["white_50.jpeg"] = 0.6898148148148148,
+    ["white_51.jpg"] = 1.4339058999253174,
+    ["white_52.jpeg"] = 0.75,
+    ["white_6.jpeg"] = 0.76328125,
+    ["white_7.jpg"] = 0.7512953367875648,
+    ["white_8.jpg"] = 0.46208530805687204,
+    ["white_9.jpeg"] = 0.6051606621226875,
+}
 
 local __RAW_URL_DATA__ = [=[
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0017.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0013.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0009.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0005.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0014.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0011.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0006.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0012.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0008.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0015.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0016.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0004.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0019.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0000.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0018.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0007.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0001.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0002.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0020.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0031.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0030.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0021.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0038.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0003.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0029.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0032.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0028.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0033.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0037.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0039.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0035.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0036.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0022.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0023.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0034.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0041.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0040.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0044.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0043.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0042.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0025.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0046.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0051.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0052.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0054.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0047.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0049.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0055.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0024.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0056.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0048.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0057.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0045.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0053.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0058.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0069.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0061.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0062.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0027.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0075.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0076.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0050.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0026.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0070.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0064.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0063.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0068.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0067.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0059.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0080.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0081.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0088.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0079.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0073.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0060.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0066.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0078.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0089.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0085.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0083.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0093.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0090.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0095.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0094.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0091.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0065.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0096.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0101.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0077.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0099.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0084.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0100.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0087.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0103.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0102.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0098.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0092.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0105.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0108.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0097.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0104.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0106.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0111.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0113.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0116.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0112.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0107.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0114.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0115.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0109.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0118.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0071.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0117.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0123.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0110.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0125.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0120.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0122.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0119.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0129.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0128.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0133.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0124.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0130.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0134.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0131.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0127.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0082.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0135.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0138.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0136.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0137.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0139.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0126.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0140.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0132.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0142.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0145.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0146.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0144.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0143.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0156.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0154.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0152.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0159.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0153.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0157.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0148.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0074.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0158.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0151.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0149.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0086.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0160.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0147.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0161.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0162.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0141.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0155.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0175.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0176.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0177.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0165.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0171.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0172.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0170.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0174.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0150.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0179.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0173.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0188.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0178.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0182.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0187.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0180.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0192.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0169.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0168.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0185.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0163.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0181.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0184.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0186.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0189.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0193.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0194.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0167.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0198.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0199.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0201.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0195.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0072.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0202.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0203.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0200.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0206.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0204.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0215.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0216.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0212.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0208.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0183.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0209.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0205.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0213.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0207.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0217.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0214.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0218.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0211.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0222.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0219.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0196.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0223.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0220.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0225.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0210.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0224.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0221.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0228.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0191.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0227.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0166.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0164.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0226.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0232.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0238.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0233.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0231.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0237.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0236.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0244.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0239.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0241.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0229.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0247.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0242.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0246.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0240.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0245.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0230.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0234.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0235.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0243.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0257.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0260.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0261.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0253.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0252.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0262.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0254.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0190.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0258.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0267.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0248.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0259.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0250.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0251.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0263.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0264.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0265.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0266.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0256.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0271.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0255.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0272.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0268.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0276.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0275.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0279.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0278.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0280.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0283.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0197.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0269.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0277.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0282.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0284.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0274.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0285.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0273.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0289.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0286.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0287.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0281.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0288.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0294.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0295.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0292.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0293.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0290.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0249.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0291.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0300.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0302.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0310.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0308.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0309.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0296.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0297.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0304.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0307.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0306.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0301.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0316.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0311.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0318.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0317.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0315.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0303.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0314.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0312.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0324.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0313.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0299.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0320.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0270.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0305.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0322.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0321.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0319.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0325.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0323.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0327.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0298.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0329.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0336.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0328.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0326.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0337.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0334.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0330.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0344.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0331.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0346.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0345.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0348.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0349.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0332.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0350.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0353.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0352.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0351.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0347.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0357.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0354.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0333.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0358.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0339.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0340.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0363.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0365.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0360.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0338.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0362.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0364.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0366.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0361.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0341.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0343.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0335.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0359.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0355.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0342.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0374.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0368.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0369.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0382.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0373.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0367.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0372.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0370.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0385.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0375.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0388.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0356.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0386.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0379.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0377.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0383.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0376.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0380.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0389.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0390.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0391.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0371.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0381.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0378.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0397.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0387.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0401.jpeg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0384.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0408.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0392.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0396.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0394.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0402.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0393.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0409.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0413.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0407.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0410.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0405.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0404.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0395.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0416.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0398.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0418.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0415.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0420.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0399.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0406.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0400.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0403.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0421.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0427.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0411.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0425.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0426.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0412.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0424.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0428.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0422.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0417.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0429.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0414.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0419.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0438.webp
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0433.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0432.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0442.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0443.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0444.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0431.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0447.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0434.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0448.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0435.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0449.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0436.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0446.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0441.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0430.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0440.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0439.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0445.png
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0423.jpg
-https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/img_0437.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_1.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_10.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_11.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_12.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_13.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_14.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_15.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_16.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_17.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_18.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_19.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_2.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_20.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_21.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_22.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_23.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_24.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_25.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_26.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_27.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_28.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_29.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_3.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_30.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_31.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_32.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_33.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_34.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_35.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_36.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_37.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_38.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_39.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_4.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_40.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_41.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_42.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_43.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_44.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_45.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_46.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_47.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_48.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_49.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_5.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_50.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_51.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_52.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_53.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_54.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_55.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_56.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_57.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_58.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_59.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_6.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_60.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_61.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_62.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_63.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_64.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_65.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_66.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_67.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_68.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_69.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_7.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_70.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_71.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_72.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_73.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_74.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_75.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_76.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_77.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_78.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_79.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_8.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_80.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_81.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_82.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_83.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_84.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_85.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_86.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_87.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_88.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_89.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_9.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_90.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_91.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_92.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_93.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_94.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_95.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/asian_96.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_1.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_10.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_100.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_101.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_102.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_103.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_104.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_105.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_106.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_107.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_108.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_109.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_11.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_110.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_111.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_112.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_113.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_114.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_115.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_116.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_117.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_118.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_119.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_12.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_120.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_121.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_122.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_123.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_124.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_125.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_126.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_127.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_128.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_129.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_13.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_130.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_131.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_132.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_133.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_134.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_135.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_136.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_137.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_138.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_139.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_14.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_140.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_141.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_142.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_143.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_144.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_145.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_146.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_147.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_148.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_149.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_15.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_150.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_151.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_152.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_153.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_154.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_155.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_156.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_157.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_158.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_159.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_16.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_160.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_161.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_162.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_163.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_164.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_165.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_166.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_167.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_168.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_169.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_17.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_170.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_171.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_172.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_173.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_174.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_175.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_176.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_177.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_178.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_179.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_18.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_180.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_181.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_182.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_183.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_184.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_185.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_186.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_187.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_188.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_189.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_19.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_190.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_191.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_192.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_193.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_194.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_195.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_196.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_197.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_198.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_199.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_2.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_20.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_200.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_201.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_202.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_203.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_204.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_205.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_206.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_207.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_208.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_209.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_21.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_210.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_211.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_212.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_213.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_214.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_215.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_216.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_217.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_218.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_219.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_22.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_220.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_221.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_222.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_223.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_224.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_225.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_226.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_227.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_228.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_229.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_23.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_230.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_231.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_232.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_233.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_234.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_235.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_236.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_237.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_238.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_239.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_24.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_240.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_241.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_242.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_243.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_244.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_245.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_246.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_247.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_248.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_249.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_25.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_250.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_251.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_252.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_253.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_254.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_255.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_256.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_257.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_258.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_259.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_26.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_260.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_261.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_262.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_263.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_264.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_265.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_266.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_267.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_268.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_269.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_27.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_270.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_271.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_272.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_273.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_274.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_275.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_276.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_277.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_278.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_279.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_28.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_280.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_281.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_282.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_283.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_284.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_285.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_286.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_287.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_288.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_289.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_29.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_290.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_291.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_292.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_293.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_294.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_295.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_296.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_297.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_298.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_299.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_3.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_30.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_300.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_301.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_302.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_303.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_304.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_305.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_306.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_307.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_308.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_309.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_31.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_310.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_311.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_312.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_313.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_314.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_315.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_316.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_317.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_318.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_319.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_32.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_320.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_321.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_322.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_323.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_324.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_325.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_326.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_327.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_328.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_329.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_33.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_330.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_331.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_332.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_333.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_334.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_335.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_336.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_337.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_338.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_339.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_34.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_340.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_341.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_342.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_343.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_344.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_345.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_346.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_347.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_348.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_349.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_35.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_350.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_351.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_352.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_353.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_354.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_355.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_356.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_357.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_358.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_359.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_36.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_360.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_361.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_362.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_363.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_364.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_365.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_366.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_367.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_368.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_369.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_37.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_370.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_371.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_372.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_373.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_374.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_375.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_376.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_377.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_378.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_379.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_38.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_380.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_381.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_382.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_383.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_384.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_385.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_386.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_387.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_388.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_389.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_39.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_390.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_391.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_392.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_393.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_394.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_395.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_396.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_397.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_398.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_399.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_4.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_40.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_400.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_401.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_402.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_403.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_404.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_405.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_406.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_407.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_408.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_409.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_41.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_410.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_411.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_412.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_413.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_414.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_415.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_416.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_417.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_418.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_419.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_42.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_420.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_421.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_422.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_423.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_424.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_425.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_426.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_427.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_428.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_429.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_43.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_430.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_431.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_432.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_433.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_434.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_435.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_436.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_437.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_438.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_439.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_44.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_440.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_441.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_442.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_443.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_444.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_445.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_446.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_447.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_448.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_449.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_45.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_450.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_451.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_452.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_453.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_454.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_455.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_456.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_457.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_458.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_459.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_46.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_460.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_461.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_462.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_463.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_464.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_465.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_466.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_467.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_468.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_469.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_47.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_470.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_471.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_472.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_473.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_48.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_49.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_5.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_50.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_51.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_52.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_53.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_54.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_55.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_56.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_57.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_58.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_59.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_6.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_60.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_61.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_62.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_63.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_64.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_65.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_66.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_67.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_68.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_69.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_7.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_70.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_71.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_72.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_73.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_74.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_75.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_76.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_77.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_78.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_79.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_8.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_80.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_81.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_82.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_83.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_84.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_85.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_86.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_87.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_88.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_89.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_9.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_90.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_91.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_92.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_93.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_94.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_95.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_96.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_97.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_98.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/goth_99.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_1.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_10.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_11.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_12.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_13.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_14.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_15.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_16.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_17.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_18.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_19.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_2.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_20.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_21.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_22.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_23.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_24.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_25.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_26.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_27.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_28.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_29.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_3.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_30.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_31.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_32.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_33.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_34.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_4.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_5.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_6.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_7.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_8.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/latina_9.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_1.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_10.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_11.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_12.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_13.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_14.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_15.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_16.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_17.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_18.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_19.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_2.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_20.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_21.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_22.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_23.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_24.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_25.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_26.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_27.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_28.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_29.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_3.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_30.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_31.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_32.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_33.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_34.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_35.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_36.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_37.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_38.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_39.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_4.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_40.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_41.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_42.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_43.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_44.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_45.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_46.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_47.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_48.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_49.png
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_5.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_50.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_51.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_52.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_6.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_7.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_8.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/madrilla-recode-public/main/goon_images/white_9.jpeg
 ]=]
 
 pcall(function()
@@ -8251,12 +9303,16 @@ pcall(function()
         local lower_link = link:lower()
         if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") and not lower_link:find("%.webp") and not lower_link:find("%.gif") then
             link = link:gsub('"', ""):gsub(',', "")
-            table.insert(urls_goth, link)
+            table.insert(urls_all, link)
+            if link:find("/goth_") then table.insert(urls_goth, link) end
+            if link:find("/white_") then table.insert(urls_white, link) end
+            if link:find("/asian_") then table.insert(urls_asian, link) end
+            if link:find("/latina_") then table.insert(urls_latina, link) end
         end
     end
-    if #urls_goth > 0 then
+    if #urls_all > 0 then
         urls_loaded = true
-        debug_status = "Loaded " .. tostring(#urls_goth) .. " URLs!"
+        debug_status = "Loaded " .. tostring(#urls_all) .. " URLs!"
     end
 end)
 
@@ -8280,13 +9336,19 @@ local unseen_urls = {}
 local next_switch = nil
 local asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
 local asmr_path = "nl\\goon_corner\\asmr_mommy.mp3"
+local asmr_max_duration = 2224
+local current_selected_track = nil
 local asmr_retry_time = 0
 local audio_playing = false
+local original_game_volume = nil
+local game_volume_reduced = false
 local last_toggle_state = false
 local config_loading = false
 local is_fetching = false
 local is_prefetching = false
-local next_ready_texture = nil
+local next_ready_aspect = nil
+local current_image_aspect = 1.0
+local last_switch_time = 0
 local pending_fetch_url = nil
 local pending_original_url = nil
 local pending_fetch_time = 0
@@ -8338,8 +9400,16 @@ local function stop_asmr()
 end
 
 pcall(function()
-    local ps_cmd = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { Invoke-WebRequest -Uri \'%s\' -OutFile \'%s\' }"', asmr_path, asmr_url, asmr_path)
-    ffi.C.WinExec(ps_cmd, 0)
+    local t1_path = "nl\\goon_corner\\asmr_mommy.mp3"
+    local t1_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
+    local t2_path = "nl\\goon_corner\\asmr_whos_mommy.m4a"
+    local t2_url = "https://media.soundgasm.net/sounds/469b0d68ac2a42f7258a40578db2f8937d358ccd.m4a"
+
+    local ps_cmd1 = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UserAgent \'Mozilla/5.0\' -Uri \'%s\' -OutFile \'%s\' }"', t1_path, t1_url, t1_path)
+    local ps_cmd2 = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UserAgent \'Mozilla/5.0\' -Uri \'%s\' -OutFile \'%s\' }"', t2_path, t2_url, t2_path)
+    
+    ffi.C.WinExec(ps_cmd1, 0)
+    ffi.C.WinExec(ps_cmd2, 0)
 end)
 
 math.randomseed(math.floor(globals.realtime * 1000))
@@ -8434,12 +9504,18 @@ local function check_pending_fetch()
             end
 
             if is_img then
-                local status, img = pcall(function() return render.load_image_from_file(temp_path, vector(200, 200)) end)
+                local status, img = pcall(function() return render.load_image_from_file(temp_path, nil) end)
                 if status and img then
+                    local filename = pending_original_url and pending_original_url:match("([^/]+)$") or ""
+                    filename = filename:gsub("%%20", " ")
+                    local aspect = image_aspects[filename] or 1.0
                     if is_prefetching then
                         next_ready_texture = img
+                        next_ready_aspect = aspect
                     else
                         current_texture = img
+                        current_image_aspect = aspect
+                        last_switch_time = globals.realtime
                         next_switch = globals.realtime + current_delay
                     end
                 else
@@ -8529,13 +9605,49 @@ local function on_render()
     local is_enabled = v51 and v51.get and v51.get("goon_corner_enabled")
     local is_asmr_enabled = v51 and v51.get and v51.get("goon_corner_asmr_enabled")
     
+    local selected_track = v51 and v51.get and v51.get("goon_corner_asmr_track_select") or "Don't Call Me Mommy (37m)"
+    if selected_track ~= current_selected_track then
+        current_selected_track = selected_track
+        stop_asmr()
+        if selected_track == "Don't Call Me Mommy (37m)" then
+            asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
+            asmr_path = "nl\\goon_corner\\asmr_mommy.mp3"
+            asmr_max_duration = 2224
+        else
+            asmr_url = "https://media.soundgasm.net/sounds/469b0d68ac2a42f7258a40578db2f8937d358ccd.m4a"
+            asmr_path = "nl\\goon_corner\\asmr_whos_mommy.m4a"
+            asmr_max_duration = 1114
+        end
+        if v51.elements_ptrs["goon_corner_seek"] then
+            v51.elements_ptrs["goon_corner_seek"].value = 0
+        end
+        current_asmr_seek = 0
+    end
+    
     current_delay = v51 and v51.get and v51.get("goon_corner_time") or 5
     local target_vol = v51 and v51.get and v51.get("goon_corner_volume") or 50
     local target_seek = v51 and v51.get and v51.get("goon_corner_seek") or 0
 
+    if target_seek > (asmr_max_duration or 2224) then
+        target_seek = asmr_max_duration or 2224
+        if v51.elements_ptrs["goon_corner_seek"] then
+            v51.elements_ptrs["goon_corner_seek"].value = target_seek
+        end
+    end
+
     local boss_key_obj = v51 and v51.get and v51.get("goon_corner_boss_key")
     local is_boss_key = type(boss_key_obj) == "table" and boss_key_obj.value or false
-    if is_boss_key then
+
+    local is_focus_mode = v51 and v51.get and v51.get("goon_corner_focus_mode")
+    local is_alive_focus = false
+    if is_focus_mode then
+        local local_player = entity and entity.get_local_player and entity.get_local_player()
+        if local_player and local_player.is_alive and local_player:is_alive() then
+            is_alive_focus = true
+        end
+    end
+
+    if is_boss_key or is_alive_focus then
         if audio_playing then pause_asmr() end
         was_boss_key_active = true
         return
@@ -8608,6 +9720,32 @@ local function on_render()
         stop_asmr()
     end
 
+    -- Game volume reduction logic (outside of is_asmr_enabled block)
+    local is_active_playing = audio_playing and is_asmr_enabled and not is_boss_key and not is_alive_focus
+    if is_active_playing then
+        local slider_pct = v51 and v51.get and v51.get("goon_corner_asmr_game_volume_reduce") or 100
+        if slider_pct < 100 then
+            if not game_volume_reduced then
+                original_game_volume = cvar.volume:float()
+                game_volume_reduced = true
+            end
+            local target_vol = original_game_volume * (slider_pct / 100)
+            cvar.volume:float(target_vol)
+        else
+            if game_volume_reduced and original_game_volume then
+                cvar.volume:float(original_game_volume)
+                original_game_volume = nil
+                game_volume_reduced = false
+            end
+        end
+    else
+        if game_volume_reduced and original_game_volume then
+            cvar.volume:float(original_game_volume)
+            original_game_volume = nil
+            game_volume_reduced = false
+        end
+    end
+
     local is_crosshair_active = v51 and v51.get and v51.get("goon_corner_crosshair")
     if not is_enabled and not is_crosshair_active then 
 
@@ -8623,12 +9761,20 @@ local function on_render()
         next_switch = globals.realtime
     end
 
-    local selected_cat = v51 and v51.get and v51.get("goon_corner_category") or 1
+    local selected_cat = v51 and v51.get and v51.get("goon_corner_category") or "All"
     if selected_cat ~= current_category then
         current_category = selected_cat
-        if current_category == 1 then goon_corner_urls = urls_goth
-        elseif current_category == 2 then goon_corner_urls = urls_egirl
-        elseif current_category == 3 then goon_corner_urls = urls_anime end
+        if current_category == "All" then 
+            goon_corner_urls = urls_all
+        elseif current_category == "Goth" then 
+            goon_corner_urls = urls_goth
+        elseif current_category == "White" then 
+            goon_corner_urls = urls_white 
+        elseif current_category == "Asian" then 
+            goon_corner_urls = urls_asian 
+        elseif current_category == "Latina" then 
+            goon_corner_urls = urls_latina 
+        end
         unseen_urls = {}
         next_switch = 0
     end
@@ -8645,8 +9791,11 @@ local function on_render()
     if globals.realtime >= next_switch then
         if next_ready_texture then
             current_texture = next_ready_texture
+            current_image_aspect = next_ready_aspect or 1.0
+            last_switch_time = globals.realtime
             total_images_viewed = total_images_viewed + 1
             next_ready_texture = nil
+            next_ready_aspect = nil
             next_switch = globals.realtime + current_delay
         elseif not is_fetching then
             fetch_random_image(false)
@@ -8662,44 +9811,75 @@ local function on_render()
         local mouse_pos = ui.get_mouse_position and ui.get_mouse_position() or vector(0, 0)
         local is_down = common.is_button_down and common.is_button_down(1)
 
+        local draw_pos, draw_size = nil, nil
+        local fit_mode = v51 and v51.get and v51.get("goon_corner_fit_mode") or "Default"
+        if current_texture and gc_pos and gc_size then
+            if fit_mode == "Default" then
+                draw_pos = gc_pos
+                draw_size = gc_size
+            else
+                local box_w, box_h = gc_size.x, gc_size.y
+                local box_aspect = box_w / box_h
+                local aspect = current_image_aspect or 1.0
+
+                local draw_w, draw_h = box_w, box_h
+                if aspect > box_aspect then
+                    draw_h = box_w / aspect
+                else
+                    draw_w = box_h * aspect
+                end
+
+                draw_pos = type(vector) == "function" and vector(gc_pos.x + (box_w - draw_w) / 2, gc_pos.y + (box_h - draw_h) / 2) or type(vector) == "table" and vector(gc_pos.x + (box_w - draw_w) / 2, gc_pos.y + (box_h - draw_h) / 2) or nil
+                draw_size = type(vector) == "function" and vector(draw_w, draw_h) or type(vector) == "table" and vector(draw_w, draw_h) or nil
+            end
+        end
+
         if is_enabled then
             if menu_open and gc_pos and gc_size then
-                local resize_rect_pos_x = gc_pos.x + gc_size.x - 15
-                local resize_rect_pos_y = gc_pos.y + gc_size.y - 15
+                -- Determine the active visible box for clicking/resizing
+                local v_pos = gc_pos
+                local v_size = gc_size
+                if is_asmr_enabled and draw_pos and draw_size then
+                    v_size = v_size + vector(0, 30)
+                end
+
+                local resize_rect_pos_x = v_pos.x + v_size.x - 15
+                local resize_rect_pos_y = v_pos.y + v_size.y - 15
 
                 if is_down then
-                if not is_dragging and not is_resizing then
-                    if mouse_pos.x >= resize_rect_pos_x and mouse_pos.y >= resize_rect_pos_y and mouse_pos.x <= gc_pos.x + gc_size.x and mouse_pos.y <= gc_pos.y + gc_size.y then
-                        is_resizing = true
-                    elseif mouse_pos.x >= gc_pos.x and mouse_pos.y >= gc_pos.y and mouse_pos.x <= gc_pos.x + gc_size.x and mouse_pos.y <= gc_pos.y + gc_size.y then
-                        is_dragging = true
-                        drag_offset_x = mouse_pos.x - gc_pos.x
-                        drag_offset_y = mouse_pos.y - gc_pos.y
+                    if not is_dragging and not is_resizing then
+                        if mouse_pos.x >= resize_rect_pos_x and mouse_pos.y >= resize_rect_pos_y and mouse_pos.x <= v_pos.x + v_size.x and mouse_pos.y <= v_pos.y + v_size.y then
+                            is_resizing = true
+                        elseif mouse_pos.x >= v_pos.x and mouse_pos.y >= v_pos.y and mouse_pos.x <= v_pos.x + v_size.x and mouse_pos.y <= v_pos.y + v_size.y then
+                            is_dragging = true
+                            drag_offset_x = mouse_pos.x - gc_pos.x
+                            drag_offset_y = mouse_pos.y - gc_pos.y
+                        end
+                    end
+                else
+                    is_dragging = false
+                    is_resizing = false
+                end
+
+                if is_dragging then
+                    local nx = mouse_pos.x - drag_offset_x
+                    local ny = mouse_pos.y - drag_offset_y
+                    if type(nx) == "number" and nx == nx then gc_pos.x = nx end
+                    if type(ny) == "number" and ny == ny then gc_pos.y = ny end
+                elseif is_resizing then
+                    -- Resize logic
+                    local nx = mouse_pos.x - v_pos.x
+                    local ny = mouse_pos.y - v_pos.y
+                    local size = math.max(nx, ny)
+                    if type(size) == "number" and size == size then 
+                        gc_size.x = size
+                        gc_size.y = size
+                    end
+                    if gc_size.x < 50 then 
+                        gc_size.x = 50
+                        gc_size.y = 50
                     end
                 end
-            else
-                is_dragging = false
-                is_resizing = false
-            end
-
-            if is_dragging then
-                local nx = mouse_pos.x - drag_offset_x
-                local ny = mouse_pos.y - drag_offset_y
-                if type(nx) == "number" and nx == nx then gc_pos.x = nx end
-                if type(ny) == "number" and ny == ny then gc_pos.y = ny end
-            elseif is_resizing then
-                local nx = mouse_pos.x - gc_pos.x
-                local ny = mouse_pos.y - gc_pos.y
-                local size = math.max(nx, ny)
-                if type(size) == "number" and size == size then 
-                    gc_size.x = size
-                    gc_size.y = size
-                end
-                if gc_size.x < 50 then 
-                    gc_size.x = 50
-                    gc_size.y = 50
-                end
-            end
 
             -- Anti-crash bounds clamping
             local screen = render.screen_size and render.screen_size() or vector(1920, 1080)
@@ -8724,11 +9904,35 @@ local function on_render()
             end
         end
 
-        if current_texture and gc_pos and gc_size and clr then
+        if current_texture and draw_pos and draw_size and clr then
+            local fit_mode = v51 and v51.get and v51.get("goon_corner_fit_mode") or "Default"
+            local elapsed_fade = globals.realtime - last_switch_time
+            local fade_alpha = math.min(1, elapsed_fade / 0.4)
+            local fade_clr = type(color) == "function" and color(clr.r or 255, clr.g or 255, clr.b or 255, math.floor(fade_alpha * (clr.a or 255))) or type(color) == "table" and color(clr.r or 255, clr.g or 255, clr.b or 255, math.floor(fade_alpha * (clr.a or 255))) or clr
+
+            if fit_mode == "Blurred Background" then
+                -- Stretched background
+                local bg_clr = type(color) == "function" and color(255, 255, 255, math.floor(fade_alpha * 120)) or type(color) == "table" and color(255, 255, 255, math.floor(fade_alpha * 120)) or nil
+                if bg_clr then
+                    if render.texture then
+                        render.texture(current_texture, gc_pos, gc_size, bg_clr)
+                    elseif render.image then
+                        render.image(current_texture, gc_pos, gc_size, bg_clr)
+                    end
+                end
+                -- Apply blur over the background
+                if render.blur then
+                    render.blur(gc_pos, gc_pos + gc_size, 4, fade_alpha, 0)
+                elseif v29.blur then
+                    v29.blur(gc_pos, gc_pos + gc_size, 4, fade_alpha, 0)
+                end
+            end
+
+            -- Front image
             if render.texture then
-                render.texture(current_texture, gc_pos, gc_size, clr)
+                render.texture(current_texture, draw_pos, draw_size, fade_clr)
             elseif render.image then
-                render.image(current_texture, gc_pos, gc_size, clr)
+                render.image(current_texture, draw_pos, draw_size, fade_clr)
             end
             
             if (is_dragging or is_resizing) and render.rect then
@@ -8773,7 +9977,8 @@ local function on_render()
                         end
                     else
                         -- YouTube Progress bar
-                        local asmr_progress = math.max(0, math.min(1, current_asmr_seek / 2224))
+                        local max_dur = asmr_max_duration or 2224
+                        local asmr_progress = math.max(0, math.min(1, current_asmr_seek / max_dur))
                         local pb_start = yt_bar_pos
                         local pb_end = yt_bar_pos + vector(gc_size.x * asmr_progress, 3)
                         render.rect_filled(pb_start, pb_end, yt_red, 0)
@@ -8784,10 +9989,13 @@ local function on_render()
                             local safe_seek = math.max(0, current_asmr_seek)
                             local m = math.floor(safe_seek / 60)
                             local s = safe_seek % 60
-                            local time_str = string.format("%s  %02d:%02d / 37:04", play_icon, m, s)
+                            local total_m = math.floor(max_dur / 60)
+                            local total_s = max_dur % 60
+                            local time_str = string.format("%s  %02d:%02d / %02d:%02d", play_icon, m, s, total_m, total_s)
                             
                             render.text(1, yt_bar_pos + vector(8, 15), yt_white, "lc", time_str)
-                            render.text(1, yt_bar_pos + vector(gc_size.x - 8, 15), yt_gray, "rc", "Goth Mommy ASMR")
+                            local track_title = (current_selected_track == "Don't Call Me Mommy (37m)") and "Goth Mommy ASMR" or "Who's your mommy?"
+                            render.text(1, yt_bar_pos + vector(gc_size.x - 8, 15), yt_gray, "rc", track_title)
                         end
                     end
                 end
@@ -8813,14 +10021,16 @@ local function on_render()
                 local glow_accent = type(color) == "function" and color(accent.r, accent.g, accent.b, math.floor(alpha_mod * 0.3)) or type(color) == "table" and color(accent.r, accent.g, accent.b, math.floor(alpha_mod * 0.3)) or nil
                 
                 if render.rect and bar_bg and bar_accent then
-                    local bar_start_y = is_asmr_enabled and 0 or (gc_size.y - 4)
-                    local bar_end_y = is_asmr_enabled and 4 or gc_size.y
+                    local p_pos = gc_pos
+                    local p_size = gc_size
+                    local bar_start_y = is_asmr_enabled and 0 or (p_size.y - 4)
+                    local bar_end_y = is_asmr_enabled and 4 or p_size.y
                     
                     -- Background track
-                    render.rect(gc_pos + vector(0, bar_start_y), gc_pos + vector(gc_size.x, bar_end_y), bar_bg, 2)
+                    render.rect(p_pos + vector(0, bar_start_y), p_pos + vector(p_size.x, bar_end_y), bar_bg, 2)
                     
-                    local fill_end = gc_pos + vector(gc_size.x * progress, bar_end_y)
-                    local fill_start = gc_pos + vector(0, bar_start_y)
+                    local fill_end = p_pos + vector(p_size.x * progress, bar_end_y)
+                    local fill_start = p_pos + vector(0, bar_start_y)
                     
                     -- Glow layer
                     if glow_accent then
@@ -8847,7 +10057,12 @@ local function on_render()
         end
 
         if menu_open and render.rect_filled and gc_pos and gc_size then
-            local resize_rect_pos = gc_pos + gc_size - vector(15, 15)
+            local v_pos = gc_pos
+            local v_size = gc_size
+            if is_asmr_enabled and draw_pos and draw_size then
+                v_size = v_size + vector(0, 30)
+            end
+            local resize_rect_pos = v_pos + v_size - vector(15, 15)
             render.rect_filled(resize_rect_pos, resize_rect_pos + vector(15, 15), accent, 0)
         end
 
@@ -8877,6 +10092,9 @@ end
 
 local function on_shutdown()
     stop_asmr()
+    if game_volume_reduced and original_game_volume then
+        cvar.volume:float(original_game_volume)
+    end
 end
 
 if cheat and cheat.RegisterCallback then
@@ -8889,4 +10107,3 @@ elseif callbacks and callbacks.Register then
     callbacks.Register("Draw", on_render)
     callbacks.Register("Unload", on_shutdown)
 end
--- =========================================================================
