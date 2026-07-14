@@ -1454,10 +1454,10 @@ v51.keybind_data = v39;
 v51.elements_ptrs = {};
 v29.load_font("ui::item", l_vector_0(22, 20, 1), "a");
 v51.virtual_keys = {
-    [1] = nil, 
-    [2] = nil, 
-    [3] = "m3", 
-    [4] = nil, 
+    [1] = "m1", 
+    [2] = "m2", 
+    [3] = nil, 
+    [4] = "m3", 
     [5] = "m4", 
     [6] = "m5", 
     [7] = nil, 
@@ -2401,19 +2401,35 @@ local function v665(v634, v635, v636, v637, v638)
             if v649 and v51.is_binding_new_key == v635._name then
                 for v658, _ in l_pairs_0(v51.virtual_keys) do
                     if v30.is_virtual_key_pressed(v658) then
-                        v51.is_binding_new_key = false;
-                        v51.binded_keys[v635._name].key = v658;
+                        -- Prevent instant M1 binding if they are just holding the initial click
+                        if not (v658 == 1 and v51.fix_press) then
+                            v51.is_binding_new_key = false;
+                            v51.binded_keys[v635._name].key = v658;
+                        end
                     end;
                 end;
-                if v30.is_virtual_key_pressed(2) then
+                if v30.is_virtual_key_pressed(27) then
                     v51.is_binding_new_key = false;
                     v51.binded_keys[v635._name].key = 27;
                 end;
             end;
-            if not v649 and v51.keybind_data and v30.is_virtual_key_pressed(2) then
-                v51.is_using_keyboard = false;
-                v51.keybind_data = v39;
-                v51.binded_keys[v635._name].key = 27;
+            if not v649 and v51.keybind_data then
+                -- Allow binding mouse buttons on "keyboard" binds too!
+                for mk = 1, 6 do
+                    if mk ~= 3 and v30.is_virtual_key_pressed(mk) then
+                        if not (mk == 1 and v51.fix_press) then
+                            v51.is_using_keyboard = false;
+                            v51.keybind_data = v39;
+                            v51.binded_keys[v635._name].key = mk;
+                        end
+                    end
+                end
+                
+                if v30.is_virtual_key_pressed(27) then
+                    v51.is_using_keyboard = false;
+                    v51.keybind_data = v39;
+                    v51.binded_keys[v635._name].key = 27;
+                end;
             end;
             if not v635.extands.is_mode_disabled then
                 v657 = {
