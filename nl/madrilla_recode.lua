@@ -9748,8 +9748,8 @@ do
                         if enemy.m_vecVelocity then
                             enemy_speed = enemy.m_vecVelocity:length2d()
                         end
-                        -- Sane base range of 190 units, expanding up to ~230+ if they are sprinting/strafing fast at us
-                        local max_dist = 190 + (enemy_speed * 0.15)
+                        -- Reduced base range of 160 units, scaling up gently based on speed
+                        local max_dist = 160 + (enemy_speed * 0.10)
 
                         local dist = local_pos:dist(enemy:get_origin())
                         if dist <= max_dist then
