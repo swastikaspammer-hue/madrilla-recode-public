@@ -3333,7 +3333,6 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
     v51.new("harmless_fire_color", v51.create_color, v762, "Harmless fire color", l_color_0(50, 150, 255, 255));
     local v763 = v51.create_table(v755_utils, "Auto Zeus", true, 3);
     v51.new("auto_zeus_knife", v51.create_checkbox, v763, "Auto Zeus on Knife");
-    v51.new("auto_zeus_range", v51.create_slider, v763, "Zeus Range", 0, 300, 200);
 
     v761 = v51.create_table(v755, "Weapons", false, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
@@ -9734,7 +9733,6 @@ do
         
         local in_range = false
         local local_pos = local_player:get_origin()
-        local max_dist = v51.get("auto_zeus_range")
 
         for _, enemy in ipairs(entity.get_players(true)) do
             if enemy and enemy:is_alive() and not enemy:is_dormant() then
@@ -9745,6 +9743,14 @@ do
                     local is_knife = (wep_name == "CKnife" or wep_name == "CWeaponKnife" or (wep_info and wep_info.weapon_type == 0))
                     
                     if is_knife then
+                        -- Calculate dynamic range based on enemy speed
+                        local enemy_speed = 0
+                        if enemy.m_vecVelocity then
+                            enemy_speed = enemy.m_vecVelocity:length2d()
+                        end
+                        -- Sane base range of 190 units, expanding up to ~230+ if they are sprinting/strafing fast at us
+                        local max_dist = 190 + (enemy_speed * 0.15)
+
                         local dist = local_pos:dist(enemy:get_origin())
                         if dist <= max_dist then
                             in_range = true
