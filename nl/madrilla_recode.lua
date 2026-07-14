@@ -9740,47 +9740,75 @@ end)
 math.randomseed(math.floor(globals.realtime * 1000))
 
 -- [[ AUTO ZEUS ]]
+local auto_zeus_prev_weapon = nil
+
 do
     events.createmove:set(function(cmd)
-        if not v51.get("auto_zeus_knife") then return end
+        if not v51.get("auto_zeus_knife") then 
+            auto_zeus_prev_weapon = nil
+            return 
+        end
         
         local local_player = entity.get_local_player()
-        if not local_player or not local_player:is_alive() then return end
+        if not local_player or not local_player:is_alive() then 
+            auto_zeus_prev_weapon = nil
+            return 
+        end
         
         local in_range = false
-        local local_pos = local_player:get_origin()
+        
+        -- If player is lethal to a knife right-click (<= 65 HP), don't pull out the Zeus. Keep the gun out.
+        if local_player.m_iHealth > 65 then
+            local local_pos = local_player:get_origin()
 
-        for _, enemy in ipairs(entity.get_players(true)) do
-            if enemy and enemy:is_alive() and not enemy:is_dormant() then
-                local enemy_weapon = enemy:get_player_weapon()
-                if enemy_weapon then
-                    local wep_name = enemy_weapon:get_classname() or ""
-                    local wep_info = enemy_weapon:get_weapon_info()
-                    local is_knife = (wep_name == "CKnife" or wep_name == "CWeaponKnife" or (wep_info and wep_info.weapon_type == 0))
-                    
-                    if is_knife then
-                        -- Calculate dynamic range based on enemy speed
-                        local enemy_speed = 0
-                        if enemy.m_vecVelocity then
-                            enemy_speed = enemy.m_vecVelocity:length2d()
-                        end
-                        -- Increased base range scaling up aggressively based on speed, 1.25x multiplier applied for safety distance
-                        local max_dist = (220 + (enemy_speed * 0.25)) * 1.25
+            for _, enemy in ipairs(entity.get_players(true)) do
+                if enemy and enemy:is_alive() and not enemy:is_dormant() then
+                    local enemy_weapon = enemy:get_player_weapon()
+                    if enemy_weapon then
+                        local wep_name = enemy_weapon:get_classname() or ""
+                        local wep_info = enemy_weapon:get_weapon_info()
+                        local is_knife = (wep_name == "CKnife" or wep_name == "CWeaponKnife" or (wep_info and wep_info.weapon_type == 0))
+                        
+                        if is_knife then
+                            -- Calculate dynamic range based on enemy speed
+                            local enemy_speed = 0
+                            if enemy.m_vecVelocity then
+                                enemy_speed = enemy.m_vecVelocity:length2d()
+                            end
+                            -- Increased base range scaling up aggressively based on speed, 1.25x multiplier applied for safety distance
+                            local max_dist = (220 + (enemy_speed * 0.25)) * 1.25
 
-                        local dist = local_pos:dist(enemy:get_origin())
-                        if dist <= max_dist then
-                            in_range = true
-                            break
+                            local dist = local_pos:dist(enemy:get_origin())
+                            if dist <= max_dist then
+                                in_range = true
+                                break
+                            end
                         end
                     end
                 end
             end
         end
 
+        local my_wep = local_player:get_player_weapon()
+        if not my_wep then return end
+        local my_wep_class = my_wep:get_classname()
+
         if in_range then
-            local my_wep = local_player:get_player_weapon()
-            if my_wep and my_wep:get_classname() ~= "CWeaponTaser" then
+            if my_wep_class ~= "CWeaponTaser" then
+                local wep_console_name = my_wep:get_name()
+                if wep_console_name and wep_console_name ~= "" and wep_console_name ~= "weapon_taser" then
+                    auto_zeus_prev_weapon = wep_console_name
+                end
                 v30.console_exec("use weapon_taser")
+            end
+        else
+            if my_wep_class == "CWeaponTaser" and auto_zeus_prev_weapon then
+                v30.console_exec("use " .. auto_zeus_prev_weapon)
+                auto_zeus_prev_weapon = nil
+            else
+                if my_wep_class ~= "CWeaponTaser" then
+                    auto_zeus_prev_weapon = nil
+                end
             end
         end
     end)
