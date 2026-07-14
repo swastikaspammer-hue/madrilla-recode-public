@@ -2373,7 +2373,7 @@ local function v665(v634, v635, v636, v637, v638)
             local v652 = v29.measure_text("theme::font", v39, v651);
             local v653 = v648 + l_vector_0(v647._size.x / 2, 30);
             local v654 = v111.mouse_position:is_in_bounds(v653 - v652 / 2, v652);
-            local v655 = v649 and v51.is_binding_new_key or v51.keybind_data ~= v39;
+            local v655 = v649 and v51.is_binding_new_key == v635._name or v51.keybind_data ~= v39;
             local v656 = v29.preform_animation(v36("%s_hover_animation", v637), (not not v654 or v655) and 1 or 0);
             local v657 = v29.preform_animation(v36("%s_binding_color", v637), v655 and l_color_0(255, 10, 10, 255) or v50.colors.accent);
             v29.shadow(v653, v653 + l_vector_0(1, 1), v657:override(v647._fade), 40 + 30 * v656);
@@ -2381,7 +2381,7 @@ local function v665(v634, v635, v636, v637, v638)
             if v647._fade == 1 and v654 and not v655 and v111.is_left_pressed then
                 v51.play_sound("click");
                 if v649 then
-                    v51.is_binding_new_key = true;
+                    v51.is_binding_new_key = v635._name;
                 else
                     v51.is_using_keyboard = true;
                     v51.keybind_data = {
@@ -2389,7 +2389,7 @@ local function v665(v634, v635, v636, v637, v638)
                     };
                 end;
             end;
-            v656 = v649 and v51.is_binding_new_key or v51.is_using_keyboard and v51.keybind_data and v51.keybind_data._name == v635._name;
+            v656 = v649 and v51.is_binding_new_key == v635._name or v51.is_using_keyboard and v51.keybind_data and v51.keybind_data._name == v635._name;
             if not v654 and v656 and v111.is_left_pressed then
                 if v649 then
                     v51.is_binding_new_key = false;
@@ -2398,7 +2398,7 @@ local function v665(v634, v635, v636, v637, v638)
                     v51.keybind_data = v39;
                 end;
             end;
-            if v649 and v51.is_binding_new_key then
+            if v649 and v51.is_binding_new_key == v635._name then
                 for v658, _ in l_pairs_0(v51.virtual_keys) do
                     if v30.is_virtual_key_pressed(v658) then
                         v51.is_binding_new_key = false;
@@ -3140,8 +3140,7 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
     v51.new("enable_impacts", v51.create_checkbox, v757, "Enable splash impact");
     v51.new("only_local_impacts", v51.create_checkbox, v757, "Only local");
     v51.new("impacts_color", v51.create_color, v757, "Splash impacts color", l_color_0(255));
-    v51.new("enable_friendly_molotov", v51.create_checkbox, v757, "Friendly molotov overlay");
-    v51.new("friendly_molotov_color", v51.create_color, v757, "Friendly molotov color", l_color_0(0, 255, 0, 70));
+
     v758 = v51.create_table(v753, "Local", false, 5);
     v51.new("animate_transparency", v51.create_checkbox, v758, "Animate transparency");
     v51.new("select_animation_state", v51.create_list, v758, "Select animation state", {
@@ -3321,7 +3320,7 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
         [2] = "2018 Sounds"
     });
     v51.new("weapons_sounds_volume", v51.create_slider, v759, "Weapons volume", 0, 100, 30);
-    local v762 = v51.create_table(v755_utils, "Grenades", true, 4);
+    local v762 = v51.create_table(v755_utils, "Grenades", true, 12);
     v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
     v51.new("smoke_helper_key", v51.create_keybind, v762, "Smoke helper key");
     v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
@@ -3329,6 +3328,9 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
         "Auto deploy",
         "Aim helper only"
     });
+    v51.new("enable_custom_fire", v51.create_checkbox, v762, "Custom fire color");
+    v51.new("harmful_fire_color", v51.create_color, v762, "Harmful fire color", l_color_0(255, 100, 50, 255));
+    v51.new("harmless_fire_color", v51.create_color, v762, "Harmless fire color", l_color_0(50, 150, 255, 255));
 
     v761 = v51.create_table(v755, "Weapons", false, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
@@ -3509,7 +3511,7 @@ v51.organize_elements = function()
                 v51.visible("model_brightness", v51.get("enable_bloom"));
                 v51.visible("only_local_impacts", v51.get("enable_impacts"));
                 v51.visible("impacts_color", v51.get("enable_impacts"));
-                v51.visible("friendly_molotov_color", v51.get("enable_friendly_molotov"));
+
                 local v812 = v51.get("select_animation_state");
                 v51.visible("air_legs_movement", v812 == "In air");
                 v51.visible("air_legs_movement_factor", v812 == "In air");
@@ -3597,6 +3599,8 @@ v51.organize_elements = function()
                 v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_manual", v51.get("enable_smoke_helper"));
                 v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
+                v51.visible("harmful_fire_color", v51.get("enable_custom_fire"));
+                v51.visible("harmless_fire_color", v51.get("enable_custom_fire"));
             end;
         end;
         return;
@@ -7688,43 +7692,331 @@ do
 end;
 v315.main();
 
-events.render:set(function()
-    if not v51.get("enable_friendly_molotov") then return end
-    local me = entity.get_local_player()
-    if not me then return end
-    local my_team = me.m_iTeamNum
-    local col = v51.get("friendly_molotov_color")
-    local r, g, b, a = col.r, col.g, col.b, col.a
-    local infernos = entity.get_entities("CInferno")
-    for i = 1, #infernos do
-        local fire = infernos[i]
-        local thrower = entity.get(fire.m_hOwnerEntity)
-        if thrower then
-            local thrower_team = thrower.m_iTeamNum
-            local is_harmless = (thrower_team == my_team)
-            if is_harmless then
-                local origin = fire:get_origin()
-                local num_fires = fire.m_nNumFires
-                if num_fires and num_fires > 0 then
-                    local x_deltas = fire.m_fireXDelta
-                    local y_deltas = fire.m_fireYDelta
-                    local z_deltas = fire.m_fireZDelta
-                    local is_burning = fire.m_bFireIsBurning
-                    for j = 0, num_fires - 1 do
-                        if is_burning[j] then
-                            local flame_pos = vector(origin.x + x_deltas[j], origin.y + y_deltas[j], origin.z + z_deltas[j])
-                            render.circle_3d(flame_pos, color(r, g, b, math.max(a - 40, 10)), 40, 2, 1)
-                            render.circle_3d(flame_pos, color(r, g, b, a), 20, 1, 0)
-                        end
-                    end
-                else
-                    render.circle_3d(origin, color(r, g, b, math.max(a - 40, 10)), 150, 2, 1)
-                    render.circle_3d(origin, color(r, g, b, a), 75, 1, 0)
-                end
-            end
+do
+local ffi = require("ffi")
+
+local hooks = { }
+
+function hooks.rel_jmp(addr, pattern)
+    if pattern then
+        addr = utils.opcode_scan(addr, pattern)
+    end
+    addr = ffi.cast("uint8_t*", addr)
+    local jmp_addr = ffi.cast("uintptr_t", addr)
+    local jmp_disp = ffi.cast("int32_t*", jmp_addr + 0x1)[0]
+    return ffi.cast("uintptr_t", jmp_addr + 0x5 + jmp_disp)
+end
+
+local hook = ffi.cast(
+    "int(__cdecl*)(void*, void*, void*, int)",
+    utils.opcode_scan("gameoverlayrenderer.dll", "55 8B EC 51 8B 45 10 C7")
+)
+
+local unhook = ffi.cast(
+    "void(__cdecl*)(void*, bool)",
+    hooks.rel_jmp(utils.opcode_scan("gameoverlayrenderer.dll", "E8 ? ? ? ? 83 C4 08 FF 15 ? ? ? ?"))
+)
+
+local all_hooks = { }
+function hooks.set(id, addr, typedef, callback)
+    local addr_pointer = ffi.cast("void*", addr)
+    all_hooks[id] = addr_pointer
+    local typedef = ffi.typeof(typedef)
+    local callback_fn = ffi.cast(typedef, callback)
+    local original_pointer = ffi.typeof("$[1]", callback_fn)()
+    local function actual_callback(...)
+        local original = original_pointer[0]
+        local call, result = pcall(callback, original, ...)
+        if not call then
+            return original(...)
+        end
+        return result
+    end
+    local callback_type = ffi.cast(typedef, actual_callback)
+    local result = hook(addr_pointer, callback_type, original_pointer, 0)
+    return result
+end
+
+function hooks.remove(id)
+    local orig = all_hooks[id]
+    if orig then
+        unhook(orig, false)
+    end
+end
+
+events.shutdown:set(function ()
+    for _, orig in pairs(all_hooks) do
+        if orig then
+            unhook(orig, false)
         end
     end
 end)
+
+
+local molotov_color_modulation = { }
+
+local patricle_operator = ffi.typeof([[
+    struct {
+        char pad[92];
+        unsigned char min[4];
+        unsigned char max[4];
+        unsigned char colmin[4];
+        unsigned char colmax[4];
+        unsigned char tintmin[4];
+        unsigned char tintmax[4];
+    }
+]])
+
+local particle_operator_initializers = ffi.typeof([[
+    struct {
+        char pad_0[0x16C];
+        $** data;
+        char pad_1[0x8];
+        int size;
+    }*
+]], patricle_operator)
+
+local patricle_attributes = ffi.typeof([[
+    struct {
+        float* base[24];
+        size_t size[24];
+    }
+]])
+
+local utl_string = ffi.typeof([[
+    struct {
+        char* buffer;
+        int capacity;
+        int grow_size;
+        int length;
+    }
+]])
+
+local patricle_system_definition = ffi.typeof([[
+    struct {
+        char pad_0[0x134];
+        $ name;
+    }
+]], utl_string)
+
+local patricle_system_definition_ref = ffi.typeof([[
+    struct {
+        void* prev;
+        void* next;
+
+        $* object;
+    }*
+]], patricle_system_definition)
+
+local particle_collection = ffi.typeof([[
+    struct {
+        char pad_0[0x30]; 
+        int active_particles; // 48
+        char pad_1[0xC];
+        $ definition; // 64
+        char pad_2[0x4];
+        $ initializers; // 72
+        char pad_2[0x40];
+        int* parent;
+        char pad_3[0x50];
+        $ attributes;
+    }*
+]], patricle_system_definition_ref, particle_operator_initializers, patricle_attributes)
+
+local constructor = hooks.rel_jmp("client.dll", "E8 ? ? ? ? C7 43 ? ? ? ? ? 8D BB ? ? ? ?")
+local destructor = hooks.rel_jmp("client.dll", "E8 ? ? ? ? 85 F6 74 14")
+
+local pointers = { }
+hooks.set("1", constructor, "void*(__fastcall*)(void*, void*)", function (original, this_ptr, edx)
+    local result = original(this_ptr, edx)
+    table.insert(pointers, ffi.cast("int*", result))
+    return result
+end)
+
+local is_calling_destructor = false
+hooks.set("2", destructor, "void(__fastcall*)(void*, void*)", function (original, this_ptr, edx)
+    is_calling_destructor = true
+    for i, ptr in ipairs(pointers) do
+        if ffi.cast("int", ptr) == ffi.cast("int", this_ptr) then
+            table.remove(pointers, i)
+            break
+        end
+    end
+    original(this_ptr, edx)
+    is_calling_destructor = false
+end)
+
+local function get_attribute(struct, num, i)
+    local block_offs = math.floor(i / 4)
+    return struct.base[num] + struct.size[num] * block_offs + (bit.band(i, 3))
+end
+
+local accepted_particles = {
+    ["molotov_groundfire"] = true,
+    ["molotov_groundfire_00MEDIUM"] = true,
+    ["molotov_groundfire_00HIGH"] = true,
+    ["molotov_groundfire_fallback"] = true,
+    ["molotov_groundfire_fallback2"] = true,
+    ["molotov_explosion"] = true,
+    ["explosion_molotov_air"] = true,
+    ["extinguish_fire"] = true,
+    ["weapon_molotov_held"] = true,
+    ["weapon_molotov_fp"] = true,
+    ["weapon_molotov_thrown"] = true,
+    ["incgrenade_thrown_trail"] = true,
+    ["env_fire_tiny_b"] = true
+}
+
+local accepted_subparticles = {
+    ["explosion_molotov_air_smoke"] = true,
+    ["molotov_smoking_ground_child01"] = true,
+    ["molotov_smoking_ground_child02"] = true,
+    ["molotov_smoking_ground_child02_cheapo"] = true,
+    ["molotov_smoking_ground_child03"] = true,
+    ["molotov_smoking_ground_child03_cheapo"] = true
+}
+
+local bad_particles = {
+    ["molotov_groundfire_child_base"] = true,
+    ["molotov_groundfire_child_base8"] = true
+}
+
+local function apply_color(pointer, r, g, b)
+    local collection = ffi.cast(particle_collection, pointer)
+    if collection.active_particles == 0 then
+        return
+    end
+
+    local def = ffi.cast(patricle_system_definition_ref, pointer[0] + 64)
+    local def_this = ffi.cast(patricle_system_definition_ref, pointer[0] + 64)
+
+    local this_parent = ffi.cast("int*", pointer[0] + 136)
+    while this_parent[0] ~= 0 do
+        def = ffi.cast(patricle_system_definition_ref, this_parent[0] + 64)
+        this_parent = ffi.cast("int*", this_parent[0] + 136)
+    end
+
+    local name = ffi.string(def.object.name.buffer)
+    local name_this = ffi.string(def_this.object.name.buffer)
+
+    if accepted_particles[name] == nil then
+        return
+    end
+
+    if accepted_subparticles[name_this] ~= nil then
+        return
+    end
+
+    for i = 0, collection.initializers.size - 1 do
+        local operator = collection.initializers.data[i][0]
+        if operator then
+            if operator.colmin[0] ~= 0 then
+                operator.min[0] = r / 255
+                operator.min[1] = g / 255
+                operator.min[2] = b / 255
+                operator.max[0] = r / 255
+                operator.max[1] = g / 255
+                operator.max[2] = b / 255
+            end
+        end
+    end
+    
+    for i = 0, collection.active_particles - 1 do
+        local ptr = get_attribute(collection.attributes, 6, i)
+        ptr[0] = r / 255
+        ptr[4] = g / 255
+        ptr[8] = b / 255
+    end
+end
+
+function molotov_color_modulation.on_render()
+    if not v51.get("enable_custom_fire") then return end
+    if is_calling_destructor then return end
+
+    local me = entity.get_local_player()
+    if not me then return end
+    local my_team = me.m_iTeamNum
+
+    local harmful = v51.get("harmful_fire_color")
+    local harmless = v51.get("harmless_fire_color")
+
+    local infernos = entity.get_entities("CInferno")
+    local inferno_data = {}
+    for i = 1, #infernos do
+        local fire = infernos[i]
+        local origin = fire:get_origin()
+        local thrower = fire.m_hOwnerEntity
+        local is_harmful = true
+        if thrower then
+            local thrower_team = thrower.m_iTeamNum
+            is_harmful = (thrower_team ~= my_team) or (thrower == me)
+        end
+        table.insert(inferno_data, {origin = origin, is_harmful = is_harmful})
+    end
+
+    for i, pointer in ipairs(pointers) do
+        if pointer[0] < 10000 then
+            table.remove(pointers, i)
+            break
+        end
+
+        local collection = ffi.cast(particle_collection, pointer)
+        if collection.active_particles > 0 then
+            local pos_ptr = get_attribute(collection.attributes, 0, 0)
+            local px, py, pz = pos_ptr[0], pos_ptr[4], pos_ptr[8]
+
+            -- Find closest inferno
+            local best_dist = 999999
+            local is_harmful = true -- Default to harmful
+            
+            for _, data in ipairs(inferno_data) do
+                local dx = data.origin.x - px
+                local dy = data.origin.y - py
+                local dz = data.origin.z - pz
+                local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+                if dist < best_dist then
+                    best_dist = dist
+                    is_harmful = data.is_harmful
+                end
+            end
+            
+            -- If we can't find an inferno within a reasonable distance (e.g. projectile in air), we assume harmful
+            if best_dist > 500 then
+                is_harmful = true
+            end
+
+            if is_harmful then
+                apply_color(pointer, harmful.r, harmful.g, harmful.b)
+            else
+                apply_color(pointer, harmless.r, harmless.g, harmless.b)
+            end
+        end
+    end 
+end
+
+local bad_materials = materials.get_materials("flare", true)
+for _, name in ipairs({
+    "particle/fire_explosion_1/fire_explosion_1_oriented",
+    "particle/fire_explosion_1/fire_explosion_1_bright"
+}) do
+    bad_materials[#bad_materials+1] = materials.get(name, true)
+end
+
+local function set_materials(b)
+    for _, mat in ipairs(bad_materials) do
+        mat:var_flag(2, b)
+    end
+end
+set_materials(true)
+
+function molotov_color_modulation.on_shutdown()
+    set_materials(false)
+end
+
+events.post_render:set(molotov_color_modulation.on_render)
+events.shutdown:set(molotov_color_modulation.on_shutdown)
+
+end
 
 -- [[ SMOKE HELPER ]]
 do
@@ -7762,7 +8054,7 @@ do
         local wep_name = weapon and weapon:get_name() or ""
         local is_holding_smoke = wep_name == "Smoke Grenade"
 
-        local max_dist = 250
+        local max_dist = 350
         local vert_dist = 350
         local sync_dist = 500
         
@@ -7794,13 +8086,14 @@ do
                 local dist_z = math.abs(dz)
                 
                 local p_z = eye_pos.z
-                local t_z = t.origin.z + 10 -- Slightly above ground to avoid floor bumps
+                local t_z = t.origin.z + 20 -- Slightly above ground to avoid floor bumps
                 local tr_player_height = utils.trace_line(eye_pos, vector(t.origin.x, t.origin.y, p_z), me)
                 local tr_molly_height = utils.trace_line(vector(eye_pos.x, eye_pos.y, t_z), vector(t.origin.x, t.origin.y, t_z), me)
+                local tr_direct = utils.trace_line(eye_pos, t.origin, me)
                 
-                -- If BOTH horizontal traces hit something, it's a solid wall blocking the entire path.
+                -- If BOTH horizontal traces hit something AND the direct trace hits something, it's a solid wall blocking the entire path.
                 -- If at least one trace is clear, there is an open path (like over a ledge or under an overhang).
-                local wall_blocks = (tr_player_height.fraction < 1) and (tr_molly_height.fraction < 1)
+                local wall_blocks = (tr_player_height.fraction < 1) and (tr_molly_height.fraction < 1) and (tr_direct.fraction < 1)
                 
                 local in_auto_range = dist_2d <= max_dist and dist_z <= vert_dist and not wall_blocks
                 local is_valid = false
@@ -7852,9 +8145,10 @@ do
         local dx = target.x - eye_pos.x
         local dy = target.y - eye_pos.y
         local dz = target.z - eye_pos.z
-        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
-        
         local dist_to_land_3d = math.sqrt(dx * dx + dy * dy + dz * dz)
+        
+        local danger_dist = 160
+        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy" and dist_to_land_3d <= danger_dist
 
         -- Check distance to the projectile entity itself
         local molly_ent = smoke_helper.active_entity
@@ -7890,11 +8184,14 @@ do
             local throw_speed = smoke_helper.THROW_SPEED
             local comp_factor = 1.25
 
+            local ceil_tr = utils.trace_line(eye_pos, eye_pos + vector(0, 0, 150), me)
+            local has_low_ceiling = ceil_tr.fraction < 1
+
             if dist_to_land_3d <= drop_dist then
                 hold_attack2 = true
                 throw_speed = 300
-                comp_factor = 0 -- Disable compensation for drops to prevent wild aim snaps when running
-            elseif dist_to_land_3d <= med_dist then
+                comp_factor = 1.0 -- Enable compensation for drops so it cancels velocity and doesn't miss when running
+            elseif dist_to_land_3d <= med_dist and not has_low_ceiling then
                 hold_attack1 = true
                 hold_attack2 = true
                 throw_speed = 500
@@ -7920,6 +8217,9 @@ do
             cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
 
             if is_auto then
+                -- Check if something is immediately in our face in the throw direction (e.g. teammate)
+                local face_tr = utils.trace_line(eye_pos, eye_pos + vector(dir_x, dir_y, dir_z) * 100, me)
+                local path_clear = face_tr.fraction == 1
 
                 -- Handle the throw: hold attack until pin is pulled, then release when in sync range
                 if smoke_helper.is_throwing then
@@ -7927,8 +8227,8 @@ do
                     cmd.in_attack = false
                     cmd.in_attack2 = false
                 elseif weapon.m_bPinPulled then
-                    if dist_to_impact <= sync_dist then
-                        -- Pin pulled and synced = set throwing flag and release
+                    if dist_to_impact <= sync_dist and path_clear then
+                        -- Pin pulled and synced and path clear = set throwing flag and release
                         smoke_helper.is_throwing = true
                         cmd.in_attack = false
                         cmd.in_attack2 = false
@@ -7942,6 +8242,13 @@ do
                     cmd.in_attack = hold_attack1
                     cmd.in_attack2 = hold_attack2
                 end
+            else
+                -- Aim helper only mode: override user's click to the optimal throw type
+                local user_attacking = cmd.in_attack or cmd.in_attack2
+                if user_attacking then
+                    cmd.in_attack = hold_attack1
+                    cmd.in_attack2 = hold_attack2
+                end
             end
         else
             -- Not holding smoke grenade, clear throwing state
@@ -7950,7 +8257,7 @@ do
                 -- If we don't have a smoke out, try to switch (rate limited to avoid disconnect spam)
                 if globals.curtime - smoke_helper.last_switch_time > smoke_helper.SWITCH_COOLDOWN then
                     smoke_helper.last_switch_time = globals.curtime
-                    utils.console_exec("use weapon_smokegrenade", cmd)
+                    utils.console_exec("use weapon_smokegrenade")
                 end
             end
         end
