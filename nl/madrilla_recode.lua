@@ -3331,6 +3331,9 @@ v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false)
     v51.new("enable_custom_fire", v51.create_checkbox, v762, "Custom fire color");
     v51.new("harmful_fire_color", v51.create_color, v762, "Harmful fire color", l_color_0(255, 100, 50, 255));
     v51.new("harmless_fire_color", v51.create_color, v762, "Harmless fire color", l_color_0(50, 150, 255, 255));
+    local v763 = v51.create_table(v755_utils, "Auto Zeus", true, 3);
+    v51.new("auto_zeus_knife", v51.create_checkbox, v763, "Auto Zeus on Knife");
+    v51.new("auto_zeus_range", v51.create_slider, v763, "Zeus Range", 0, 300, 200);
 
     v761 = v51.create_table(v755, "Weapons", false, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
@@ -9721,9 +9724,48 @@ end)
 
 math.randomseed(math.floor(globals.realtime * 1000))
 
+-- [[ AUTO ZEUS ]]
+do
+    events.createmove:set(function(cmd)
+        if not v51.get("auto_zeus_knife") then return end
+        
+        local local_player = entity.get_local_player()
+        if not local_player or not local_player:is_alive() then return end
+        
+        local in_range = false
+        local local_pos = local_player:get_origin()
+        local max_dist = v51.get("auto_zeus_range")
+
+        for _, enemy in ipairs(entity.get_players(true)) do
+            if enemy and enemy:is_alive() and not enemy:is_dormant() then
+                local enemy_weapon = enemy:get_player_weapon()
+                if enemy_weapon then
+                    local wep_name = enemy_weapon:get_classname() or ""
+                    local wep_info = enemy_weapon:get_weapon_info()
+                    local is_knife = (wep_name == "CKnife" or wep_name == "CWeaponKnife" or (wep_info and wep_info.weapon_type == 0))
+                    
+                    if is_knife then
+                        local dist = local_pos:dist(enemy:get_origin())
+                        if dist <= max_dist then
+                            in_range = true
+                            break
+                        end
+                    end
+                end
+            end
+        end
+
+        if in_range then
+            local my_wep = local_player:get_player_weapon()
+            if my_wep and my_wep:get_classname() ~= "CWeaponTaser" then
+                v30.console_exec("use weapon_taser")
+            end
+        end
+    end)
+end
+
 if events and events.config_load then
     events.config_load:set(function()
-
         unseen_urls = {}
         current_texture = nil
         next_ready_texture = nil
