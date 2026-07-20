@@ -9985,7 +9985,7 @@ local function fetch_random_image(prefetch)
         os.remove(temp_path .. ".tmp")
         os.remove("nl/goon_corner/error.txt")
     end)
-    local ps_cmd = string.format('powershell -windowstyle hidden -command "Remove-Item -Path \'%s*\' -ErrorAction SilentlyContinue; Remove-Item -Path \'nl/goon_corner/error.txt\' -ErrorAction SilentlyContinue; try { $ProgressPreference = \'SilentlyContinue\'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 -Uri \'%s\' -OutFile \'%s.tmp\'; Move-Item -Force \'%s.tmp\' \'%s\' } catch { Set-Content -Path \'nl/goon_corner/error.txt\' -Value $_.Exception.Message }"', temp_path, url, temp_path, temp_path, temp_path)
+    local ps_cmd = string.format('powershell -windowstyle hidden -command "New-Item -Path \'nl/goon_corner\' -ItemType Directory -Force | Out-Null; Remove-Item -Path \'%s*\' -ErrorAction SilentlyContinue; Remove-Item -Path \'nl/goon_corner/error.txt\' -ErrorAction SilentlyContinue; try { $ProgressPreference = \'SilentlyContinue\'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 -Uri \'%s\' -OutFile \'%s.tmp\'; Move-Item -Force \'%s.tmp\' \'%s\' } catch { Set-Content -Path \'nl/goon_corner/error.txt\' -Value $_.Exception.Message }"', temp_path, url, temp_path, temp_path, temp_path)
     
     -- Execute asynchronously via WinExec (0 = SW_HIDE)
     pcall(function()
